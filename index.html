@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVS - Hayatta Kal Ansiklopedisi</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2d5a27">
+    <link rel="stylesheet" href="./maps/leaflet.css" />
+    <script src="./maps/leaflet.js"></script>
+    <script src="./assets/js/marked.min.js"></script>
+    <script src="./assets/js/pmtiles.js"></script>
+    <script src="./assets/js/protomaps-leaflet.js"></script>
+    <style>
+        html, body { margin: 0; padding: 0; background-color: #f5f5f0; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.5; overflow-x: hidden; }
+        .top-header { background: #ffffff; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 2000; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; box-sizing: border-box; }
+        .top-header * { box-sizing: border-box; }
+        .brand-home { text-decoration: none; display: flex; flex-direction: column; justify-content: center; padding-right: 10px; border-right: 1px solid #e5e7eb; cursor: pointer; flex-shrink: 0; }
+        .brand-title { font-size: 20px; font-weight: 900; color: #2d5a27; line-height: 1.1; }
+        .brand-sub { font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; }
+        .search-box { flex: 1 1 200px; display: flex; gap: 6px; min-width: 0; }
+        .search-box input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; }
+        .btn { padding: 8px 12px; border: 1px solid #d1d5db; background: #ffffff; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #1f2937; white-space: nowrap; }
+        .btn-active { background: #2d5a27 !important; color: #ffffff !important; border-color: #2d5a27 !important; }
+        .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .container { max-width: 1024px; margin: 0 auto; padding: 18px 14px; box-sizing: border-box; }
+        .page-title { font-size: 24px; font-weight: 700; margin: 0 0 14px 0; color: #111827; }
+        #map-area { width: 100%; height: 440px; border-radius: 10px; border: 1px solid #d1d5db; position: relative !important; overflow: hidden !important; z-index: 1; }
+        #map-area .leaflet-tile { max-width: none !important; max-height: none !important; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #ffffff; padding: 12px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 14px; box-sizing: border-box; }
+        .filter-item label { display: block; font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 4px; }
+        .filter-item select { width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff; box-sizing: border-box; }
+        .view-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .toggle-group { display: flex; gap: 6px; }
+        .pill-btn { padding: 6px 14px; border-radius: 999px; border: 1px solid #d1d5db; background: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .pill-btn.active { background: #2d5a27; color: #ffffff; border-color: #2d5a27; }
+        .count-badge { font-size: 13px; font-weight: 600; color: #6b7280; }
+        .alpha-bar { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
+        .alpha-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; }
+        .alpha-btn.active, .alpha-btn:hover { background: #2d5a27; color: #ffffff; border-color: #2d5a27; }
+        .article-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-sizing: border-box; }
+        .card-title { font-size: 15px; font-weight: 700; color: #111827; flex: 1 1 250px; }
+        .card-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .badge { font-size: 11px; padding: 3px 9px; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .b-risk { background: #fef3c7; color: #92400e; }
+        .b-cat { background: #e0f2fe; color: #075985; }
+        .b-time { background: #f3f4f6; color: #4b5563; }
+        .reader-box { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <a href="#" id="homeBrandBtn" class="brand-home">
+            <span class="brand-title">AVS</span>
+            <span class="brand-sub">Hayatta Kal</span>
+        </a>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Ara: ateş, kene, patates, su arıtma...">
+            <button class="btn btn-active" id="searchBtn">Ara</button>
+        </div>
+        <div class="nav-tabs">
+            <button class="btn" id="modeAiBtn">Danışman (AI)</button>
+            <button class="btn btn-active" id="modeEncyclopediaBtn">Ansiklopedi</button>
+            <button class="btn" id="toggleMapBtn">Harita</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="map-wrapper" style="display:none; margin-bottom: 18px;">
+            <div style="background:#ffffff; border:1px solid #d1d5db; border-radius:10px; padding:12px; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <label for="pmtilesFileInput" class="btn btn-active" style="cursor:pointer; margin:0;">📂 Çevrimdışı Harita Seç (.pmtiles)</label>
+                    <input type="file" id="pmtilesFileInput" accept=".pmtiles" style="display:none;">
+                    <span id="mapStatusText" style="font-size:12px; font-weight:600; color:#4b5563;">Harita bekleniyor...</span>
+                </div>
+                <div style="font-size:12px; color:#6b7280;">💡 Haritada bir noktaya tıklayarak <b>GPS koordinatı</b> ve <b>yürüme menzili</b> analizi yapın.</div>
+            </div>
+            <div id="map-area"></div>
+            <div id="coord-panel" style="display:none; background:#ffffff; border:2px solid #2d5a27; border-radius:10px; padding:14px; margin-top:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                    <strong style="color:#2d5a27; font-size:15px;">📍 Seçilen Saha Koordinatı ve Menzil Analizi</strong>
+                    <button class="btn" id="copyCoordBtn" style="font-size:12px; padding:4px 10px;">📋 Koordinatı Kopyala</button>
+                </div>
+                <div id="coordText" style="font-family:monospace; font-size:14px; font-weight:700; color:#111827; margin-bottom:8px;"></div>
+                <div style="font-size:12px; color:#374151; line-height:1.5;">
+                    <span>🟢 <b>1 km (İç Çember):</b> Acil Su ve Yakacak Keşif Alanı (~15 dk)</span><br>
+                    <span>🟡 <b>5 km (Orta Çember):</b> Günlük Av, Bitki ve Kaynak Tarama (~1.5 saat)</span><br>
+                    <span>🔴 <b>15 km (Dış Çember):</b> Tam Gün Güvenli Göç Menzili</span>
+                </div>
+                <div id="nearby-resources" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;"></div>
+
+            </div>
+
+        </div>
+
+        <div id="directory-header">
+            <h1 class="page-title">Ansiklopedi</h1>
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Kategori</label>
+                    <select id="filterCategory"><option value="ALL">Hepsi</option></select>
+                </div>
+                <div class="filter-item">
+                    <label>Risk Seviyesi</label>
+                    <select id="filterRisk">
+                        <option value="ALL">Hepsi</option>
+                        <option value="Yüksek">Yüksek Risk</option>
+                        <option value="Orta">Orta Risk</option>
+                        <option value="Düşük">Düşük Risk</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Faz / Aşama</label>
+                    <select id="filterPhase">
+                        <option value="ALL">Hepsi</option>
+                        <option value="hayatta-kalma">Faz 1: Hayatta Kalma</option>
+                        <option value="yasami-devam-ettirme">Faz 2: Yaşamı Devam Ettirme</option>
+                        <option value="medeniyete-gecis">Faz 3: Medeniyete Geçiş</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="display:flex; align-items:flex-end;">
+                    <button class="btn btn-active" id="applyFiltersBtn" style="width:100%;">Uygula</button>
+                </div>
+            </div>
+            <div class="view-controls">
+                <div class="toggle-group">
+                    <button class="pill-btn active" id="viewAZBtn">A-Z</button>
+                    <button class="pill-btn" id="viewCatBtn">Kategoriye göre</button>
+                </div>
+                <div class="count-badge" id="cardCountText">0 kart</div>
+            </div>
+            <div class="alpha-bar" id="alpha-bar"></div>
+        </div>
+        <div id="content-area"></div>
+    </main>
+
+    <script src="./data/articles_data.js"></script>
+    <script src="./data/survival_poi.js"></script>
+
+    <script src="./assets/js/app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js').catch(function() {});
+        });
+      }
+    </script>
+</body>
+</html>
