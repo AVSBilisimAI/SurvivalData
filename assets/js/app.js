@@ -942,160 +942,103 @@ if (pharmaModeBtn) {
 });
 // ==========================================
 // ==========================================
-// HİBRİT (ÇEVRİMDIŞI + TAM METİN) TR / EN ÇEVİRİ MOTORU
+// GERÇEK ZAMANLI ARKA PLAN ÇEVİRİ MOTORU (TR <-> EN)
 // ==========================================
 let currentLang = 'TR';
+const translationCache = {}; // Çevrilen cümleleri hafızada tutar (tekrar istek atmaz)
 
-const UI_TRANSLATIONS = {
-    'Danışman (AI)': 'Advisor (AI)',
-    'Ansiklopedi': 'Encyclopedia',
-    '💊 Farmakoloji': '💊 Pharmacology',
-    'Harita': 'Map',
-    '🔄 Güncelle': '🔄 Update',
-    'Uygula': 'Apply',
-    'Ara': 'Search',
-    'Kategori': 'Category',
-    'Risk Seviyesi': 'Risk Level',
-    'Faz / Aşama': 'Phase / Stage',
-    'Hepsi': 'All',
-    'Tümü': 'All',
-    'Kategoriye göre': 'By Category',
-    'Yüksek Risk': 'High Risk',
-    'Orta Risk': 'Medium Risk',
-    'Düşük Risk': 'Low Risk',
-    'Faz 1: Hayatta Kalma': 'Phase 1: Survival',
-    'Faz 2: Yaşamı Devam Ettirme': 'Phase 2: Sustaining Life',
-    'Faz 3: Medeniyete Geçiş': 'Phase 3: Rebuilding Civilization',
-    '💊 Saha Farmakoloji Ansiklopedisi': '💊 Field Pharmacology Encyclopedia',
-    'İlaç / Etken Madde Ara': 'Search Drug / Active Ingredient',
-    'Tıbbi Kategori': 'Medical Category',
-    'İlaç Formu': 'Dosage Form',
-    'Tüm Kategoriler': 'All Categories',
-    'Tüm Formlar': 'All Forms',
-    'Tüm Etken Maddeler': 'All Active Ingredients',
-    '← Ansiklopediye Dön': '← Back to Encyclopedia',
-    '1. Hayatta Kalma (İlk 72 Saat)': '1. Survival (First 72 Hours)',
-    '2. Yaşamı Devam Ettirme': '2. Sustaining Life',
-    '3. Medeniyete Geçiş': '3. Rebuilding Civilization',
-    'Antibiyotikler': 'Antibiotics',
-    'Antiseptik & Dezenfektanlar': 'Antiseptics & Disinfectants',
-    'Ağrı Kesici & Ateş Düşürücüler': 'Painkillers & Antipyretics',
-    'Alerji & Anafilaksi': 'Allergy & Anaphylaxis',
-    'Solunum & Astım': 'Respiratory & Asthma',
-    'Solunum & Soğuk Algınlığı': 'Respiratory & Common Cold',
-    'Mide & Bağırsak': 'Stomach & Gastrointestinal',
-    'Serum & Elektrolitler': 'IV Fluids & Electrolytes',
-    'Kalp & Tansiyon': 'Heart & Blood Pressure',
-    'Sinir Sistemi & Sedatifler': 'Nervous System & Sedatives',
-    'Lokal Anestezikler': 'Local Anesthetics',
-    'Göz & Kulak': 'Eye & Ear Drops',
-    'Diyabet & Hormon': 'Diabetes & Hormones',
-    'Karaciğer & Böbrek': 'Liver & Kidney',
-    'Merhem & Cilt Bakımı': 'Ointments & Skin Care',
-    'Kadın Hastalıkları': 'Women Health',
-    'Çocuk İlaçları': 'Pediatric Medications',
-    // Makale Başlıkları Çevrimdışı Sözlüğü
-    'Acil Avlanma, Pasif Tuzaklar ve Protein Eldesi': 'Emergency Hunting, Passive Traps & Protein Acquisition',
-    'Acil Barınak Yapımı ve Güvenli Yer Seçimi': 'Emergency Shelter Building & Safe Site Selection',
-    'Ateş Yakma Teknikleri ve Isı Koruma': 'Fire Starting Techniques & Heat Retention',
-    'Su Bulma, Filtreleme ve Arıtma Yöntemleri': 'Water Sourcing, Filtration & Purification Methods',
-    'İlk Yardım, Kanama Durdurma ve Yara Bakımı': 'First Aid, Hemorrhage Control & Wound Care',
-    'Zehirli ve Yenilebilir Yabani Bitkiler': 'Poisonous vs. Edible Wild Plants',
-    'Yön Bulma, Doğal Navigasyon ve İşaret Verme': 'Navigation, Natural Orientation & Signaling',
-    'Temel Tarım, Toprak Hazırlığı ve Tohum Saklama': 'Basic Agriculture, Soil Preparation & Seed Saving',
-    'Gıda Saklama, Kurutma, Tuzlama ve Fermantasyon': 'Food Preservation, Drying, Salting & Fermentation',
-    'Doğal İlaçlar, Şifalı Bitkiler ve Hijyen': 'Natural Remedies, Medicinal Herbs & Hygiene',
-    'Temel Alet Yapımı, İp ve Düğüm Teknikleri': 'Basic Tool Making, Cordage & Knot Techniques',
-    'Çömlekçilik, Kil İşleme ve Basit Fırın Yapımı': 'Pottery, Clay Processing & Primitive Kiln Building',
-    'Temel Demir İşleme ve Metalurji': 'Basic Blacksmithing & Metallurgy',
-    'Yenilenebilir Enerji, Su Çarkı ve Basit Elektrik': 'Renewable Energy, Waterwheel & Basic Electricity',
-    'Sabun, Kül Suyu ve Temizlik Maddesi Üretimi': 'Soap, Lye & Cleaning Agent Production'
-};
+// Sayfadaki görünür tüm metin düğümlerini (Text Nodes) otomatik toplar
+function getVisibleTextNodes(root) {
+    const nodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        const parent = node.parentElement;
+        if (!parent) continue;
+        const tag = parent.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'INPUT' || tag === 'SELECT') continue;
+        if (parent.offsetParent === null) continue; // Gizli panelleri atla
 
-const REVERSE_TRANSLATIONS = {};
-Object.keys(UI_TRANSLATIONS).forEach(function(k) {
-    REVERSE_TRANSLATIONS[UI_TRANSLATIONS[k]] = k;
-});
+        const text = node.nodeValue.trim();
+        // Sadece sayı/sembol olmayan, en az 2 harfli anlamlı metinleri al
+        if (text.length >= 2 && /[a-zA-ZğüşıöçĞÜŞİÖÇ]/.test(text)) {
+            nodes.push(node);
+        }
+    }
+    return nodes;
+}
 
-function translateInterface(targetLang) {
-    const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
+// MyMemory Açık Çeviri API'si ile metni gerçek zamanlı çevirir
+async function translateTextLive(text) {
+    if (translationCache[text]) return translationCache[text];
+    try {
+        const url = 'https://translated.net' + encodeURIComponent(text) + '&langpair=tr|en';
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json && json.responseData && json.responseData.translatedText) {
+            const result = json.responseData.translatedText;
+            translationCache[text] = result;
+            return result;
+        }
+    } catch (e) {}
+    return text;
+}
 
-    document.querySelectorAll('button, h1, h2, h3, label, option, strong, span, div').forEach(function(el) {
-        if (el.children.length === 0 && el.innerText) {
-            const txt = el.innerText.trim();
-            if (dict[txt]) {
-                el.innerText = dict[txt];
+async function runLivePageTranslation(targetLang) {
+    const langBtn = document.getElementById('langToggleBtn');
+    const nodes = getVisibleTextNodes(document.body);
+
+    if (targetLang === 'TR') {
+        // Orijinal Türkçe metinleri anında geri yükle
+        nodes.forEach(function(node) {
+            if (node._origTr) {
+                node.nodeValue = node._origTr;
             }
+        });
+        return;
+    }
+
+    if (!navigator.onLine) {
+        alert('⚠️ Gerçek zamanlı çeviri için internet bağlantısı gereklidir.');
+        return;
+    }
+
+    if (langBtn) langBtn.innerText = '⏳ Çevriliyor...';
+
+    // Tekil metinleri grupla (aynı kelimeyi 50 kere sormamak için)
+    const uniqueTexts = [];
+    nodes.forEach(function(node) {
+        if (!node._origTr) node._origTr = node.nodeValue;
+        const clean = node._origTr.trim();
+        if (clean !== '🌐 EN' && clean !== '🌐 TR' && uniqueTexts.indexOf(clean) === -1) {
+            uniqueTexts.push(clean);
         }
     });
 
-    const mainSearch = document.getElementById('searchInput');
-    if (mainSearch) {
-        mainSearch.placeholder = targetLang === 'EN'
-            ? 'Search: fire, tick, potato, water purification...'
-            : 'Ara: ateş, kene, patates, su arıtma...';
+    // 5'erli paralel paketler halinde hızlı ve engellenmeden çevir
+    const batchSize = 5;
+    for (let i = 0; i < uniqueTexts.length; i += batchSize) {
+        const batch = uniqueTexts.slice(i, i + batchSize);
+        await Promise.all(batch.map(async function(trText) {
+            const enText = await translateTextLive(trText);
+            nodes.forEach(function(node) {
+                if (node._origTr && node._origTr.trim() === trText) {
+                    node.nodeValue = node._origTr.replace(trText, enText);
+                }
+            });
+        }));
     }
 
-    const pharmaSearch = document.getElementById('pharmaSearchInput');
-    if (pharmaSearch) {
-        pharmaSearch.placeholder = targetLang === 'EN'
-            ? 'Ex: Amoxicillin, Aspirin, Morphine...'
-            : 'Örn: Amoksisilin, Aspirin, Morfin...';
-    }
-
-    document.querySelectorAll('.badge, .count-badge, #pharmaActiveFilterText').forEach(function(el) {
-        let text = el.innerText;
-        if (targetLang === 'EN') {
-            text = text.replace('Yüksek risk', 'High risk')
-                       .replace('Orta risk', 'Medium risk')
-                       .replace('Düşük risk', 'Low risk')
-                       .replace(' kart', ' cards')
-                       .replace(' etken madde', ' active ingredients')
-                       .replace(' dk', ' min')
-                       .replace(' rehber', ' guides');
-        } else {
-            text = text.replace('High risk', 'Yüksek risk')
-                       .replace('Medium risk', 'Orta risk')
-                       .replace('Low risk', 'Düşük risk')
-                       .replace(' cards', ' kart')
-                       .replace(' active ingredients', ' etken madde')
-                       .replace(' min', ' dk')
-                       .replace(' guides', ' rehber');
-        }
-        el.innerText = text;
-    });
-
-    // Makale veya İlaç içeriği açıksa ve internet varsa uzun metinleri otomatik çevir
-    const readerBox = document.querySelector('.reader-box');
-    if (readerBox && navigator.onLine && targetLang === 'EN') {
-        const paragraphs = readerBox.querySelectorAll('p, li, h1, h2, h3');
-        paragraphs.forEach(function(p) {
-            if (!p.getAttribute('data-tr')) {
-                p.setAttribute('data-tr', p.innerHTML);
-            }
-            const rawText = p.innerText.trim();
-            if (rawText.length > 3) {
-                fetch('https://googleapis.com' + encodeURIComponent(rawText))
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data && data[0]) {
-                            p.innerText = data[0].map(function(item) { return item[0]; }).join('');
-                        }
-                    }).catch(function() {});
-            }
-        });
-    } else if (readerBox && targetLang === 'TR') {
-        readerBox.querySelectorAll('[data-tr]').forEach(function(p) {
-            p.innerHTML = p.getAttribute('data-tr');
-        });
-    }
+    if (langBtn) langBtn.innerText = '🌐 TR';
 }
 
 const langBtn = document.getElementById('langToggleBtn');
 if (langBtn) {
     langBtn.addEventListener('click', function() {
         currentLang = currentLang === 'TR' ? 'EN' : 'TR';
-        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
-        translateInterface(currentLang);
+        if (currentLang === 'TR') {
+            langBtn.innerText = '🌐 EN';
+        }
+        runLivePageTranslation(currentLang);
     });
 }
