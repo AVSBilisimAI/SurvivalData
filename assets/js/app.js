@@ -941,5 +941,72 @@ if (pharmaModeBtn) {
     }
 });
 // ==========================================
+// ==========================================
+// MOBİL GERİ TUŞU VE ÇIKIŞ KORUMA SİSTEMİ
+// ==========================================
+(function() {
+    let exitWarningActive = false;
+
+    // Sayfa ilk açıldığında tarayıcı geçmişine koruma tamponu ekle
+    if (window.history && window.history.pushState) {
+        window.history.replaceState({ avsScreen: 'home' }, '');
+        window.history.pushState({ avsScreen: 'guard' }, '');
+    }
+
+    // Ekran değişimlerinde geçmişe adım kaydet
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('.article-card, #modePharmaBtn, #modeAiBtn, #toggleMapBtn, #searchBtn');
+        if (target && window.history && window.history.pushState) {
+            window.history.pushState({ avsScreen: 'subview' }, '');
+        }
+    });
+
+    // Telefonun geri tuşuna (popstate) basıldığında çalışacak kontrol
+    window.addEventListener('popstate', function() {
+        const mapWrap = document.getElementById('map-wrapper');
+        const pharmaHeader = document.getElementById('pharma-header');
+        const dirHeader = document.getElementById('directory-header');
+
+        // 1. Harita açıksa önce haritayı kapat
+        if (mapWrap && mapWrap.style.display === 'block') {
+            mapWrap.style.display = 'none';
+            window.history.pushState({ avsScreen: 'guard' }, '');
+            return;
+        }
+
+        // 2. Makale okuma ekranında, arama sonucunda veya Farmakoloji sekmesindeyse Ana Sayfaya dön
+        const isInReaderOrSearch = dirHeader && dirHeader.style.display === 'none';
+        const isInPharma = pharmaHeader && pharmaHeader.style.display === 'block';
+
+        if (isInReaderOrSearch || isInPharma) {
+            if (typeof resetToHome === 'function') {
+                resetToHome();
+            }
+            window.history.pushState({ avsScreen: 'guard' }, '');
+            return;
+        }
+
+        // 3. Zaten Ana Sayfadaysa yanlışlıkla kapanmayı önle ve uyarı göster
+        if (!exitWarningActive) {
+            exitWarningActive = true;
+            window.history.pushState({ avsScreen: 'guard' }, '');
+
+            let toast = document.getElementById('avs-exit-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'avs-exit-toast';
+                toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111827; color:#ffffff; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:700; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center; border:1px solid #374151;';
+                toast.innerText = '⚠️ Çıkmak için geri tuşuna tekrar basın';
+                document.body.appendChild(toast);
+            }
+            toast.style.display = 'block';
+
+            setTimeout(function() {
+                exitWarningActive = false;
+                if (toast) toast.style.display = 'none';
+            }, 3000);
+        }
+    });
+})();
 
 
