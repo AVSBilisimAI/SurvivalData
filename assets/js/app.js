@@ -1062,7 +1062,7 @@ function translateInterface(targetLang) {
         el.innerText = text;
     });
 
-        // 1. Açık Makale İçeriğini (.reader-box) Çevir
+            // 1. Açık Makale İçeriğini (.reader-box) Çevir
     const readerBox = document.querySelector('.reader-box');
     if (readerBox && navigator.onLine && targetLang === 'EN') {
         readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
@@ -1110,3 +1110,11 @@ function translateInterface(targetLang) {
     }
 }
 
+const langBtn = document.getElementById('langToggleBtn');
+if (langBtn) {
+    langBtn.addEventListener('click', function() {
+        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
+        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
+        translateInterface(currentLang);
+    });
+}
