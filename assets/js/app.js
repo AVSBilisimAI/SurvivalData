@@ -938,3 +938,106 @@ if (pharmaModeBtn) {
         el.addEventListener(elId === 'pharmaSearchInput' ? 'input' : 'change', renderPharmaList);
     }
 });
+// ==========================================
+// ÇEVRİMDIŞI TR / EN DİL ÇEVİRİ MOTORU
+// ==========================================
+let currentLang = 'TR';
+
+const UI_TRANSLATIONS = {
+    'Danışman (AI)': 'Advisor (AI)',
+    'Ansiklopedi': 'Encyclopedia',
+    '💊 Farmakoloji': '💊 Pharmacology',
+    'Harita': 'Map',
+    '🔄 Güncelle': '🔄 Update',
+    'Uygula': 'Apply',
+    'Ara': 'Search',
+    'Kategori': 'Category',
+    'Risk Seviyesi': 'Risk Level',
+    'Faz / Aşama': 'Phase / Stage',
+    'Hepsi': 'All',
+    'Tümü': 'All',
+    'Kategoriye göre': 'By Category',
+    'Yüksek Risk': 'High Risk',
+    'Orta Risk': 'Medium Risk',
+    'Düşük Risk': 'Low Risk',
+    'Faz 1: Hayatta Kalma': 'Phase 1: Survival',
+    'Faz 2: Yaşamı Devam Ettirme': 'Phase 2: Sustaining Life',
+    'Faz 3: Medeniyete Geçiş': 'Phase 3: Rebuilding Civilization',
+    '💊 Saha Farmakoloji Ansiklopedisi': '💊 Field Pharmacology Encyclopedia',
+    'İlaç / Etken Madde Ara': 'Search Drug / Active Ingredient',
+    'Tıbbi Kategori': 'Medical Category',
+    'İlaç Formu': 'Dosage Form',
+    'Tüm Kategoriler': 'All Categories',
+    'Tüm Formlar': 'All Forms',
+    'Tüm Etken Maddeler': 'All Active Ingredients',
+    '← Ansiklopediye Dön': '← Back to Encyclopedia',
+    '1. Hayatta Kalma (İlk 72 Saat)': '1. Survival (First 72 Hours)',
+    '2. Yaşamı Devam Ettirme': '2. Sustaining Life',
+    '3. Medeniyete Geçiş': '3. Rebuilding Civilization'
+};
+
+const REVERSE_TRANSLATIONS = {};
+Object.keys(UI_TRANSLATIONS).forEach(function(k) {
+    REVERSE_TRANSLATIONS[UI_TRANSLATIONS[k]] = k;
+});
+
+function translateInterface(targetLang) {
+    const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
+
+    // Buton, başlık ve etiketleri çevir
+    document.querySelectorAll('button, h1, label, option, strong, span, div').forEach(function(el) {
+        if (el.children.length === 0 && el.innerText) {
+            const txt = el.innerText.trim();
+            if (dict[txt]) {
+                el.innerText = dict[txt];
+            }
+        }
+    });
+
+    // Arama kutusu yer tutucularını güncelle
+    const mainSearch = document.getElementById('searchInput');
+    if (mainSearch) {
+        mainSearch.placeholder = targetLang === 'EN'
+            ? 'Search: fire, tick, potato, water purification...'
+            : 'Ara: ateş, kene, patates, su arıtma...';
+    }
+
+    const pharmaSearch = document.getElementById('pharmaSearchInput');
+    if (pharmaSearch) {
+        pharmaSearch.placeholder = targetLang === 'EN'
+            ? 'Ex: Amoxicillin, Aspirin, Morphine...'
+            : 'Örn: Amoksisilin, Aspirin, Morfin...';
+    }
+
+    // Sayfa dinamik terimlerini çevir (risk, kart, dk, etken madde)
+    document.querySelectorAll('.badge, .count-badge, #pharmaActiveFilterText').forEach(function(el) {
+        let text = el.innerText;
+        if (targetLang === 'EN') {
+            text = text.replace('Yüksek risk', 'High risk')
+                       .replace('Orta risk', 'Medium risk')
+                       .replace('Düşük risk', 'Low risk')
+                       .replace(' kart', ' cards')
+                       .replace(' etken madde', ' active ingredients')
+                       .replace(' dk', ' min')
+                       .replace(' rehber', ' guides');
+        } else {
+            text = text.replace('High risk', 'Yüksek risk')
+                       .replace('Medium risk', 'Orta risk')
+                       .replace('Low risk', 'Düşük risk')
+                       .replace(' cards', ' kart')
+                       .replace(' active ingredients', ' etken madde')
+                       .replace(' min', ' dk')
+                       .replace(' guides', ' rehber');
+        }
+        el.innerText = text;
+    });
+}
+
+const langBtn = document.getElementById('langToggleBtn');
+if (langBtn) {
+    langBtn.addEventListener('click', function() {
+        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
+        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
+        translateInterface(currentLang);
+    });
+}
