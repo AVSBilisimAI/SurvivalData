@@ -992,22 +992,7 @@ const UI_TRANSLATIONS = {
     'Karaciğer & Böbrek': 'Liver & Kidney',
     'Merhem & Cilt Bakımı': 'Ointments & Skin Care',
     'Kadın Hastalıkları': 'Women Health',
-    'Çocuk İlaçları': 'Pediatric Medications',
-    'Acil Avlanma, Pasif Tuzaklar ve Protein Eldesi': 'Emergency Hunting, Passive Traps & Protein Acquisition',
-    'Acil Barınak Yapımı ve Güvenli Yer Seçimi': 'Emergency Shelter Building & Safe Site Selection',
-    'Ateş Yakma Teknikleri ve Isı Koruma': 'Fire Starting Techniques & Heat Retention',
-    'Su Bulma, Filtreleme ve Arıtma Yöntemleri': 'Water Sourcing, Filtration & Purification Methods',
-    'İlk Yardım, Kanama Durdurma ve Yara Bakımı': 'First Aid, Hemorrhage Control & Wound Care',
-    'Zehirli ve Yenilebilir Yabani Bitkiler': 'Poisonous vs. Edible Wild Plants',
-    'Yön Bulma, Doğal Navigasyon ve İşaret Verme': 'Navigation, Natural Orientation & Signaling',
-    'Temel Tarım, Toprak Hazırlığı ve Tohum Saklama': 'Basic Agriculture, Soil Preparation & Seed Saving',
-    'Gıda Saklama, Kurutma, Tuzlama ve Fermantasyon': 'Food Preservation, Drying, Salting & Fermentation',
-    'Doğal İlaçlar, Şifalı Bitkiler ve Hijyen': 'Natural Remedies, Medicinal Herbs & Hygiene',
-    'Temel Alet Yapımı, İp ve Düğüm Teknikleri': 'Basic Tool Making, Cordage & Knot Techniques',
-    'Çömlekçilik, Kil İşleme ve Basit Fırın Yapımı': 'Pottery, Clay Processing & Primitive Kiln Building',
-    'Temel Demir İşleme ve Metalurji': 'Basic Blacksmithing & Metallurgy',
-    'Yenilenebilir Enerji, Su Çarkı ve Basit Elektrik': 'Renewable Energy, Waterwheel & Basic Electricity',
-    'Sabun, Kül Suyu ve Temizlik Maddesi Üretimi': 'Soap, Lye & Cleaning Agent Production'
+    'Çocuk İlaçları': 'Pediatric Medications'
 };
 
 const REVERSE_TRANSLATIONS = {};
@@ -1015,17 +1000,38 @@ Object.keys(UI_TRANSLATIONS).forEach(function(k) {
     REVERSE_TRANSLATIONS[UI_TRANSLATIONS[k]] = k;
 });
 
-function runGoogleTranslate(text, onSuccess) {
-    const apiUrl = ['https://googleapis.com', '/translate_a/single?client=gtx&sl=tr&tl=en&dt=t&q='].join('') + encodeURIComponent(text);
-    fetch(apiUrl)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data && Array.isArray(data[0])) {
-                const translated = data[0].map(function(item) { return item[0]; }).join('');
-                if (translated) onSuccess(translated);
-            }
-        })
-        .catch(function() {});
+function translateBatchElements(elements) {
+    if (!elements || elements.length === 0) return;
+
+    const chunkSize = 15;
+    for (let i = 0; i < elements.length; i += chunkSize) {
+        const chunk = elements.slice(i, i + chunkSize);
+        const combinedText = chunk.map(function(el) {
+            return el.innerText.trim().replace(/\n+/g, ' ');
+        }).join('\n');
+
+        const url = 'https://googleapis.com' + encodeURIComponent(combinedText);
+
+        fetch(url)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data && data[0]) {
+                    let fullTranslated = '';
+                    for (let j = 0; j < data[0].length; j++) {
+                        if (data[0][j] && data[0][j][0]) {
+                            fullTranslated += data[0][j][0];
+                        }
+                    }
+                    const lines = fullTranslated.split('\n');
+                    chunk.forEach(function(el, idx) {
+                        if (lines[idx] && lines[idx].trim().length > 0) {
+                            el.innerText = lines[idx].trim();
+                        }
+                    });
+                }
+            })
+            .catch(function() {});
+    }
 }
 
 function translateInterface(targetLang) {
@@ -1077,43 +1083,47 @@ function translateInterface(targetLang) {
     });
 
     if (targetLang === 'EN') {
-        if (!navigator.onLine) return;
-
         const targets = [];
+
         const readerBox = document.querySelector('.reader-box');
         if (readerBox) {
             readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
-                if (p.innerText.trim().length > 3) targets.push(p);
+                if (p.innerText.trim().length > 3) {
+                    if (!p.getAttribute('data-tr')) p.setAttribute('data-tr', p.innerHTML);
+                    targets.push(p);
+                }
             });
         }
 
-        if (currentMode === 'pharma') {
-            const pharmaHeader = document.getElementById('pharma-header');
-            if (pharmaHeader) {
-                pharmaHeader.querySelectorAll('div').forEach(function(d) {
-                    if (d.children.length <= 1 && d.innerText.trim().startsWith('⚠️')) targets.push(d);
-                });
-            }
-            const contentArea = document.getElementById('content-area');
-            if (contentArea) {
-                contentArea.querySelectorAll('div, span').forEach(function(el) {
-                    const txt = el.innerText.trim();
-                    if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️') || txt.startsWith('Piyasa İsimleri:')) {
-                        targets.push(el);
-                    }
-                });
-            }
+        const pharmaHeader = document.getElementById('pharma-header');
+        if (pharmaHeader && pharmaHeader.style.display !== 'none') {
+            pharmaHeader.querySelectorAll('div').forEach(function(d) {
+                if (d.children.length <= 1 && d.innerText.trim().startsWith('⚠️')) {
+                    if (!d.getAttribute('data-tr')) d.setAttribute('data-tr', d.innerHTML);
+                    targets.push(d);
+                }
+            });
         }
 
-        targets.forEach(function(el, idx) {
-            if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
-            const raw = el.innerText.trim();
-            setTimeout(function() {
-                runGoogleTranslate(raw, function(translatedText) {
-                    el.innerText = translatedText;
-                });
-            }, idx * 40);
-        });
+        const contentArea = document.getElementById('content-area');
+        if (contentArea) {
+            contentArea.querySelectorAll('div, span').forEach(function(el) {
+                const txt = el.innerText.trim();
+                if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️') || txt.startsWith('Piyasa İsimleri:')) {
+                    if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
+                    el.innerHTML = el.innerHTML
+                        .replace('Ne İçin Kullanılır:', 'Indications / Usage:')
+                        .replace('Kullanılmayacak Durumlar / Risk:', 'Contraindications / Risk:')
+                        .replace('Saha / SKT Notu:', 'Field / Expiry Note:')
+                        .replace('Piyasa İsimleri:', 'Brand Names:');
+                    targets.push(el);
+                }
+            });
+        }
+
+        if (navigator.onLine && targets.length > 0) {
+            translateBatchElements(targets);
+        }
     } else {
         document.querySelectorAll('[data-tr]').forEach(function(el) {
             el.innerHTML = el.getAttribute('data-tr');
