@@ -939,7 +939,7 @@ if (pharmaModeBtn) {
     }
 });
 // ==========================================
-// ÇEVRİMDIŞI TR / EN DİL ÇEVİRİ MOTORU
+// HİBRİT (ÇEVRİMDIŞI + TAM METİN) TR / EN ÇEVİRİ MOTORU
 // ==========================================
 let currentLang = 'TR';
 
@@ -973,7 +973,40 @@ const UI_TRANSLATIONS = {
     '← Ansiklopediye Dön': '← Back to Encyclopedia',
     '1. Hayatta Kalma (İlk 72 Saat)': '1. Survival (First 72 Hours)',
     '2. Yaşamı Devam Ettirme': '2. Sustaining Life',
-    '3. Medeniyete Geçiş': '3. Rebuilding Civilization'
+    '3. Medeniyete Geçiş': '3. Rebuilding Civilization',
+    'Antibiyotikler': 'Antibiotics',
+    'Antiseptik & Dezenfektanlar': 'Antiseptics & Disinfectants',
+    'Ağrı Kesici & Ateş Düşürücüler': 'Painkillers & Antipyretics',
+    'Alerji & Anafilaksi': 'Allergy & Anaphylaxis',
+    'Solunum & Astım': 'Respiratory & Asthma',
+    'Solunum & Soğuk Algınlığı': 'Respiratory & Common Cold',
+    'Mide & Bağırsak': 'Stomach & Gastrointestinal',
+    'Serum & Elektrolitler': 'IV Fluids & Electrolytes',
+    'Kalp & Tansiyon': 'Heart & Blood Pressure',
+    'Sinir Sistemi & Sedatifler': 'Nervous System & Sedatives',
+    'Lokal Anestezikler': 'Local Anesthetics',
+    'Göz & Kulak': 'Eye & Ear Drops',
+    'Diyabet & Hormon': 'Diabetes & Hormones',
+    'Karaciğer & Böbrek': 'Liver & Kidney',
+    'Merhem & Cilt Bakımı': 'Ointments & Skin Care',
+    'Kadın Hastalıkları': 'Women Health',
+    'Çocuk İlaçları': 'Pediatric Medications',
+    // Makale Başlıkları Çevrimdışı Sözlüğü
+    'Acil Avlanma, Pasif Tuzaklar ve Protein Eldesi': 'Emergency Hunting, Passive Traps & Protein Acquisition',
+    'Acil Barınak Yapımı ve Güvenli Yer Seçimi': 'Emergency Shelter Building & Safe Site Selection',
+    'Ateş Yakma Teknikleri ve Isı Koruma': 'Fire Starting Techniques & Heat Retention',
+    'Su Bulma, Filtreleme ve Arıtma Yöntemleri': 'Water Sourcing, Filtration & Purification Methods',
+    'İlk Yardım, Kanama Durdurma ve Yara Bakımı': 'First Aid, Hemorrhage Control & Wound Care',
+    'Zehirli ve Yenilebilir Yabani Bitkiler': 'Poisonous vs. Edible Wild Plants',
+    'Yön Bulma, Doğal Navigasyon ve İşaret Verme': 'Navigation, Natural Orientation & Signaling',
+    'Temel Tarım, Toprak Hazırlığı ve Tohum Saklama': 'Basic Agriculture, Soil Preparation & Seed Saving',
+    'Gıda Saklama, Kurutma, Tuzlama ve Fermantasyon': 'Food Preservation, Drying, Salting & Fermentation',
+    'Doğal İlaçlar, Şifalı Bitkiler ve Hijyen': 'Natural Remedies, Medicinal Herbs & Hygiene',
+    'Temel Alet Yapımı, İp ve Düğüm Teknikleri': 'Basic Tool Making, Cordage & Knot Techniques',
+    'Çömlekçilik, Kil İşleme ve Basit Fırın Yapımı': 'Pottery, Clay Processing & Primitive Kiln Building',
+    'Temel Demir İşleme ve Metalurji': 'Basic Blacksmithing & Metallurgy',
+    'Yenilenebilir Enerji, Su Çarkı ve Basit Elektrik': 'Renewable Energy, Waterwheel & Basic Electricity',
+    'Sabun, Kül Suyu ve Temizlik Maddesi Üretimi': 'Soap, Lye & Cleaning Agent Production'
 };
 
 const REVERSE_TRANSLATIONS = {};
@@ -984,8 +1017,7 @@ Object.keys(UI_TRANSLATIONS).forEach(function(k) {
 function translateInterface(targetLang) {
     const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
 
-    // Buton, başlık ve etiketleri çevir
-    document.querySelectorAll('button, h1, label, option, strong, span, div').forEach(function(el) {
+    document.querySelectorAll('button, h1, h2, h3, label, option, strong, span, div').forEach(function(el) {
         if (el.children.length === 0 && el.innerText) {
             const txt = el.innerText.trim();
             if (dict[txt]) {
@@ -994,7 +1026,6 @@ function translateInterface(targetLang) {
         }
     });
 
-    // Arama kutusu yer tutucularını güncelle
     const mainSearch = document.getElementById('searchInput');
     if (mainSearch) {
         mainSearch.placeholder = targetLang === 'EN'
@@ -1009,7 +1040,6 @@ function translateInterface(targetLang) {
             : 'Örn: Amoksisilin, Aspirin, Morfin...';
     }
 
-    // Sayfa dinamik terimlerini çevir (risk, kart, dk, etken madde)
     document.querySelectorAll('.badge, .count-badge, #pharmaActiveFilterText').forEach(function(el) {
         let text = el.innerText;
         if (targetLang === 'EN') {
@@ -1031,6 +1061,31 @@ function translateInterface(targetLang) {
         }
         el.innerText = text;
     });
+
+    // Makale veya İlaç içeriği açıksa ve internet varsa uzun metinleri otomatik çevir
+    const readerBox = document.querySelector('.reader-box');
+    if (readerBox && navigator.onLine && targetLang === 'EN') {
+        const paragraphs = readerBox.querySelectorAll('p, li, h1, h2, h3');
+        paragraphs.forEach(function(p) {
+            if (!p.getAttribute('data-tr')) {
+                p.setAttribute('data-tr', p.innerHTML);
+            }
+            const rawText = p.innerText.trim();
+            if (rawText.length > 3) {
+                fetch('https://googleapis.com' + encodeURIComponent(rawText))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data[0]) {
+                            p.innerText = data[0].map(function(item) { return item[0]; }).join('');
+                        }
+                    }).catch(function() {});
+            }
+        });
+    } else if (readerBox && targetLang === 'TR') {
+        readerBox.querySelectorAll('[data-tr]').forEach(function(p) {
+            p.innerHTML = p.getAttribute('data-tr');
+        });
+    }
 }
 
 const langBtn = document.getElementById('langToggleBtn');
