@@ -810,9 +810,11 @@ function initPharmaModule() {
     // A-Z Harf Barını oluştur
     const bar = document.getElementById('pharma-alpha-bar');
     if (bar) {
-        const letters = Array.from(new Set(window.PHARMA_DATA.map(function(p) {
-            return p.name.charAt(0).toUpperCase();
-        }))).sort(function(a, b) { return a.localeCompare(b, 'tr'); });
+        const letters = Array.from(new Set(
+            window.PHARMA_DATA
+                .filter(function(p) { return p && p.name && p.name.trim().length > 0; })
+                .map(function(p) { return p.name.trim().charAt(0).toUpperCase(); })
+        )).sort(function(a, b) { return a.localeCompare(b, 'tr'); });
 
         let html = '<button class="alpha-btn active" data-letter="ALL">Tümü</button>';
         letters.forEach(function(l) {
@@ -1084,37 +1086,43 @@ function translateInterface(targetLang) {
         });
     }
 
-    // 2. Farmakoloji Kartlarının İçeriklerini (Kullanım, Uyarı, Saha Notu) Çevir
+        // 2. Farmakoloji Sayfası Uyarısı ve Kart İçeriklerini Çevir
+    const pharmaHeader = document.getElementById('pharma-header');
     const contentArea = document.getElementById('content-area');
-    if (contentArea && currentMode === 'pharma') {
-        const pharmaTexts = contentArea.querySelectorAll('div > div');
+
+    if (currentMode === 'pharma') {
         if (targetLang === 'EN' && navigator.onLine) {
-            pharmaTexts.forEach(function(el) {
-                const txt = el.innerText.trim();
-                if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️')) {
-                    if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
-                    fetch('https://googleapis.com' + encodeURIComponent(txt))
-                        .then(function(r) { return r.json(); })
-                        .then(function(data) {
-                            if (data && data) {
-                                el.innerText = data.map(function(item) { return item; }).join('');
-                            }
-                        }).catch(function() {});
-                }
+            // Üstteki Saha Uyarısı kutusunu ve kart içindeki tüm metinleri çevir
+            const targets = [];
+            if (pharmaHeader) {
+                pharmaHeader.querySelectorAll('div').forEach(function(d) {
+                    if (d.innerText.trim().startsWith('⚠️')) targets.push(d);
+                });
+            }
+            if (contentArea) {
+                contentArea.querySelectorAll('div, span').forEach(function(el) {
+                    const txt = el.innerText.trim();
+                    if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️') || txt.startsWith('Piyasa İsimleri:')) {
+                        targets.push(el);
+                    }
+                });
+            }
+
+            targets.forEach(function(el) {
+                if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
+                const raw = el.innerText.trim();
+                fetch('https://googleapis.com' + encodeURIComponent(raw))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data) {
+                            el.innerText = data.map(function(item) { return item; }).join('');
+                        }
+                    }).catch(function() {});
             });
         } else if (targetLang === 'TR') {
-            contentArea.querySelectorAll('[data-tr]').forEach(function(el) {
+            document.querySelectorAll('[data-tr]').forEach(function(el) {
                 el.innerHTML = el.getAttribute('data-tr');
             });
         }
     }
-}
-
-const langBtn = document.getElementById('langToggleBtn');
-if (langBtn) {
-    langBtn.addEventListener('click', function() {
-        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
-        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
-        translateInterface(currentLang);
-    });
 }
