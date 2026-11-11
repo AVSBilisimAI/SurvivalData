@@ -1062,21 +1062,18 @@ function translateInterface(targetLang) {
         el.innerText = text;
     });
 
-    // Makale veya İlaç içeriği açıksa ve internet varsa uzun metinleri otomatik çevir
+        // 1. Açık Makale İçeriğini (.reader-box) Çevir
     const readerBox = document.querySelector('.reader-box');
     if (readerBox && navigator.onLine && targetLang === 'EN') {
-        const paragraphs = readerBox.querySelectorAll('p, li, h1, h2, h3');
-        paragraphs.forEach(function(p) {
-            if (!p.getAttribute('data-tr')) {
-                p.setAttribute('data-tr', p.innerHTML);
-            }
+        readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
+            if (!p.getAttribute('data-tr')) p.setAttribute('data-tr', p.innerHTML);
             const rawText = p.innerText.trim();
             if (rawText.length > 3) {
                 fetch('https://googleapis.com' + encodeURIComponent(rawText))
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
-                        if (data && data[0]) {
-                            p.innerText = data[0].map(function(item) { return item[0]; }).join('');
+                        if (data && data) {
+                            p.innerText = data.map(function(item) { return item; }).join('');
                         }
                     }).catch(function() {});
             }
@@ -1086,13 +1083,30 @@ function translateInterface(targetLang) {
             p.innerHTML = p.getAttribute('data-tr');
         });
     }
+
+    // 2. Farmakoloji Kartlarının İçeriklerini (Kullanım, Uyarı, Saha Notu) Çevir
+    const contentArea = document.getElementById('content-area');
+    if (contentArea && currentMode === 'pharma') {
+        const pharmaTexts = contentArea.querySelectorAll('div > div');
+        if (targetLang === 'EN' && navigator.onLine) {
+            pharmaTexts.forEach(function(el) {
+                const txt = el.innerText.trim();
+                if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️')) {
+                    if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
+                    fetch('https://googleapis.com' + encodeURIComponent(txt))
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data && data) {
+                                el.innerText = data.map(function(item) { return item; }).join('');
+                            }
+                        }).catch(function() {});
+                }
+            });
+        } else if (targetLang === 'TR') {
+            contentArea.querySelectorAll('[data-tr]').forEach(function(el) {
+                el.innerHTML = el.getAttribute('data-tr');
+            });
+        }
+    }
 }
 
-const langBtn = document.getElementById('langToggleBtn');
-if (langBtn) {
-    langBtn.addEventListener('click', function() {
-        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
-        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
-        translateInterface(currentLang);
-    });
-}
