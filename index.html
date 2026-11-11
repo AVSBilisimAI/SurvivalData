@@ -65,7 +65,8 @@
             <button class="btn" id="modePharmaBtn">💊 Farmakoloji</button>
             <button class="btn" id="toggleMapBtn">Harita</button>
             <button class="btn" id="forceUpdateBtn" title="En son verileri indir ve yenile">🔄 Güncelle</button>
-            <div id="google_translate_element" style="display:inline-block;"></div>
+            <button class="btn" id="googleLangBtn" style="background:#f8fafc; border-color:#94a3b8; font-weight:800;">🌐 English</button>
+<div id="google_translate_element" style="position:fixed; top:-9999px; left:-9999px;"></div>
         </div>
     </header>
 
@@ -193,16 +194,35 @@
         });
       }
     </script>
-    <script>
+   <script>
 function googleTranslateElementInit() {
     new google.translate.TranslateElement({
         pageLanguage: 'tr',
-        includedLanguages: 'en,tr,ar,de,fr,ru',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        includedLanguages: 'en,tr',
+        autoDisplay: false
     }, 'google_translate_element');
 }
+
+document.getElementById('googleLangBtn').addEventListener('click', function() {
+    const btn = this;
+    const combo = document.querySelector('.goog-te-combo');
+    if (!combo) {
+        alert('Çeviri motoru henüz yükleniyor veya internet bağlantınız kapalı.');
+        return;
+    }
+    if (btn.innerText.includes('English')) {
+        combo.value = 'en';
+        combo.dispatchEvent(new Event('change'));
+        btn.innerText = '🌐 Türkçe';
+    } else {
+        combo.value = 'tr';
+        combo.dispatchEvent(new Event('change'));
+        btn.innerText = '🌐 English';
+    }
+});
 </script>
 <script src="https://google.com"></script>
+
 
 </body>
 </html>
