@@ -65,7 +65,7 @@
             <button class="btn" id="modePharmaBtn">💊 Farmakoloji</button>
             <button class="btn" id="toggleMapBtn">Harita</button>
             <button class="btn" id="forceUpdateBtn" title="En son verileri indir ve yenile">🔄 Güncelle</button>
-            <button class="btn" id="langToggleBtn" style="background:#f8fafc; border-color:#94a3b8; font-weight:800;">🌐 EN</button>
+            <div id="google_translate_element" style="display:inline-block;"></div>
         </div>
     </header>
 
@@ -193,5 +193,16 @@
         });
       }
     </script>
+    <script>
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'tr',
+        includedLanguages: 'en,tr,ar,de,fr,ru',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+}
+</script>
+<script src="https://google.com"></script>
+
 </body>
 </html>
