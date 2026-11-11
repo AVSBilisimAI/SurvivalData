@@ -1086,13 +1086,12 @@ function translateInterface(targetLang) {
         });
     }
 
-        // 2. Farmakoloji Sayfası Uyarısı ve Kart İçeriklerini Çevir
+            // 2. Farmakoloji Sayfası Uyarısı ve Kart İçeriklerini Çevir
     const pharmaHeader = document.getElementById('pharma-header');
     const contentArea = document.getElementById('content-area');
 
     if (currentMode === 'pharma') {
         if (targetLang === 'EN' && navigator.onLine) {
-            // Üstteki Saha Uyarısı kutusunu ve kart içindeki tüm metinleri çevir
             const targets = [];
             if (pharmaHeader) {
                 pharmaHeader.querySelectorAll('div').forEach(function(d) {
@@ -1114,8 +1113,8 @@ function translateInterface(targetLang) {
                 fetch('https://googleapis.com' + encodeURIComponent(raw))
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
-                        if (data && data) {
-                            el.innerText = data.map(function(item) { return item; }).join('');
+                        if (data && data[0]) {
+                            el.innerText = data[0].map(function(item) { return item[0]; }).join('');
                         }
                     }).catch(function() {});
             });
@@ -1125,4 +1124,13 @@ function translateInterface(targetLang) {
             });
         }
     }
+}
+
+const langBtn = document.getElementById('langToggleBtn');
+if (langBtn) {
+    langBtn.addEventListener('click', function() {
+        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
+        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
+        translateInterface(currentLang);
+    });
 }
