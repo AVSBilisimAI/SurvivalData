@@ -566,18 +566,41 @@ function executeSearch() {
 
     const dirHeader = document.getElementById('directory-header');
     if (dirHeader) dirHeader.style.display = 'none';
+    const pharmaHeader = document.getElementById('pharma-header');
+    if (pharmaHeader) pharmaHeader.style.display = 'none';
 
-    const cleanWords = rawQuery.toLowerCase()
+    const qNorm = rawQuery.toLocaleLowerCase('tr-TR');
+    const cleanWords = qNorm
         .replace(/[^\w\sğüşıöç]/g, '')
         .split(/\s+/)
         .filter(function(w) { return w.length > 2; });
     
-    const searchTerms = cleanWords.length > 0 ? cleanWords : [rawQuery.toLowerCase()];
+    const searchTerms = cleanWords.length > 0 ? cleanWords : [qNorm];
 
+    // 1. ÖNCE İLAÇLARI ARA (Farmakoloji Eşleşmeleri)
+    let matchedDrugs = [];
+    if (window.PHARMA_DATA && Array.isArray(window.PHARMA_DATA)) {
+        matchedDrugs = window.PHARMA_DATA.filter(function(drug) {
+            const hay = (
+                (drug.name || '') + ' ' +
+                (drug.brands || '') + ' ' +
+                (drug.usage || '') + ' ' +
+                (drug.contra || '') + ' ' +
+                (drug.category || '')
+            ).toLocaleLowerCase('tr-TR');
+
+            return searchTerms.some(function(term) {
+                const root = term.length > 4 ? term.slice(0, -1) : term;
+                return hay.indexOf(root) !== -1;
+            });
+        }).slice(0, 6);
+    }
+
+    // 2. SONRA MAKALELERİ ARA
     const scoredResults = allArticles.map(function(art) {
         let score = 0;
-        const titleLower = (art.title || '').toLowerCase();
-        const contentLower = (art.content || '').toLowerCase();
+        const titleLower = (art.title || '').toLocaleLowerCase('tr-TR');
+        const contentLower = (art.content || '').toLocaleLowerCase('tr-TR');
 
         searchTerms.forEach(function(term) {
             const root = term.length > 4 ? term.slice(0, -1) : term;
@@ -601,20 +624,30 @@ function executeSearch() {
     backBtn.addEventListener('click', resetToHome);
     area.appendChild(backBtn);
 
-    if (results.length === 0) {
+    // İKİSİ DE BOŞSA BULUNAMADI DE
+    if (results.length === 0 && matchedDrugs.length === 0) {
         const emptyBox = document.createElement('div');
         emptyBox.className = 'reader-box';
-        emptyBox.innerText = '"' + rawQuery + '" sorgusuyla eşleşen bir kayıt bulunamadı.';
+        emptyBox.innerText = '"' + rawQuery + '" sorgusuyla eşleşen bir kayıt veya ilaç bulunamadı.';
         area.appendChild(emptyBox);
         return;
     }
 
-    // Danışman (AI) Öneri Kutusu
+    // DANIŞMAN (AI) YANIT KUTUSU (Hem Makale Hem İlaç Bilgilerini Özetler)
     if (currentMode === 'ai') {
         const matchedLines = [];
         const warningLines = [];
 
-        results.slice(0, 4).forEach(function(art) {
+        // İlaçlardan gelen kritik bilgileri AI özetine ekle
+        matchedDrugs.slice(0, 3).forEach(function(drug) {
+            matchedLines.push('💊 [' + drug.name + ' / ' + (drug.brands || drug.forms) + '] ' + drug.usage);
+            if (drug.contra) {
+                warningLines.push('💊 [' + drug.name + '] ' + drug.contra);
+            }
+        });
+
+        // Makalelerden gelen satırları AI özetine ekle
+        results.slice(0, 3).forEach(function(art) {
             const lines = (art.content || '').split('\n');
             lines.forEach(function(line) {
                 const trimmed = line.trim();
@@ -623,7 +656,7 @@ function executeSearch() {
                 const plain = trimmed.replace(/[*`_|\-]/g, ' ').replace(/\s+/g, ' ').trim();
                 if (plain.length < 25 || plain.length > 240 || plain.indexOf('<') !== -1) return;
                 
-                const plainLower = plain.toLowerCase();
+                const plainLower = plain.toLocaleLowerCase('tr-TR');
                 const isMatch = searchTerms.some(function(term) {
                     const root = term.length > 4 ? term.slice(0, -1) : term;
                     return plainLower.indexOf(root) !== -1;
@@ -633,9 +666,9 @@ function executeSearch() {
                     const shortTitle = art.title.split(' ').slice(0, 2).join(' ');
                     const entryText = '[' + shortTitle + '] ' + plain;
                     if (plainLower.indexOf('uyarı') !== -1 || plainLower.indexOf('zehir') !== -1 || plainLower.indexOf('ölümcül') !== -1 || plainLower.indexOf('dikkat') !== -1) {
-                        if (warningLines.length < 3 && warningLines.indexOf(entryText) === -1) warningLines.push(entryText);
+                        if (warningLines.length < 4 && warningLines.indexOf(entryText) === -1) warningLines.push(entryText);
                     } else {
-                        if (matchedLines.length < 6 && matchedLines.indexOf(entryText) === -1) matchedLines.push(entryText);
+                        if (matchedLines.length < 7 && matchedLines.indexOf(entryText) === -1) matchedLines.push(entryText);
                     }
                 }
             });
@@ -690,64 +723,25 @@ function executeSearch() {
             });
         } else {
             const li = document.createElement('li');
-            li.innerText = 'Aradığınız konuyla doğrudan ilgili teknik kılavuzlar aşağıda listelenmiştir.';
+            li.innerText = 'İlgili kılavuz ve ilaç kartları aşağıda listelenmiştir.';
             infoUl.appendChild(li);
         }
         infoDiv.appendChild(infoUl);
         aiBox.appendChild(infoDiv);
         area.appendChild(aiBox);
     }
-    // Danışman (AI) ve Ana Arama İçinde İlaç Eşleşmeleri
-    if (window.PHARMA_DATA && Array.isArray(window.PHARMA_DATA)) {
-        const matchedDrugs = window.PHARMA_DATA.filter(function(drug) {
-            const hay = (drug.name + ' ' + (drug.brands || '') + ' ' + drug.usage + ' ' + drug.category).toLowerCase();
-            return searchTerms.some(function(term) {
-                const root = term.length > 4 ? term.slice(0, -1) : term;
-                return hay.indexOf(root) !== -1;
-            });
-        }).slice(0, 4);
 
-        matchedDrugs.forEach(function(drug) {
-            const dCard = document.createElement('div');
-            dCard.style.cssText = 'background:#f0fdf4; border:1px solid #16a34a; border-left:5px solid #15803d; border-radius:10px; padding:12px 16px; margin-bottom:12px;';
-            dCard.innerHTML = '<div style="font-weight:800; color:#14532d; font-size:15px;">💊 İlaç Eşleşmesi: ' + drug.name + ' <span style="font-weight:400; font-size:12px;">(' + (drug.brands || drug.forms) + ')</span></div>' +
-                '<div style="font-size:13px; color:#1f2937; margin-top:4px;"><b>Kullanım:</b> ' + drug.usage + '</div>' +
-                '<div style="font-size:12px; color:#991b1b; margin-top:4px;"><b>⛔ Dikkat:</b> ' + drug.contra + '</div>';
-            area.appendChild(dCard);
-        });
-    }
-    // Danışman (AI) ve Ana Arama İçinde İlaç Eşleşmeleri
-    if (window.PHARMA_DATA && Array.isArray(window.PHARMA_DATA)) {
-        const qNorm = rawQuery.toLocaleLowerCase('tr-TR');
-        const termsNorm = qNorm.split(/\s+/).filter(function(w) { return w.length > 2; });
-        const activeTerms = termsNorm.length > 0 ? termsNorm : [qNorm];
+    // EŞLEŞEN İLAÇ KARTLARINI GÖSTER
+    matchedDrugs.forEach(function(drug) {
+        const dCard = document.createElement('div');
+        dCard.style.cssText = 'background:#f0fdf4; border:1px solid #16a34a; border-left:5px solid #15803d; border-radius:10px; padding:12px 16px; margin-bottom:12px;';
+        dCard.innerHTML = '<div style="font-weight:800; color:#14532d; font-size:15px;">💊 İlaç Eşleşmesi: ' + drug.name + ' <span style="font-weight:500; font-size:12px; color:#374151;">(' + (drug.brands || drug.forms) + ')</span></div>' +
+            '<div style="font-size:13px; color:#1f2937; margin-top:4px;"><b>✅ Kullanım:</b> ' + drug.usage + '</div>' +
+            '<div style="font-size:12px; color:#991b1b; margin-top:4px;"><b>⛔ Dikkat / Risk:</b> ' + drug.contra + '</div>';
+        area.appendChild(dCard);
+    });
 
-        const matchedDrugs = window.PHARMA_DATA.filter(function(drug) {
-            const hay = (
-                (drug.name || '') + ' ' +
-                (drug.brands || '') + ' ' +
-                (drug.usage || '') + ' ' +
-                (drug.contra || '') + ' ' +
-                (drug.category || '')
-            ).toLocaleLowerCase('tr-TR');
-
-            return activeTerms.some(function(term) {
-                const root = term.length > 4 ? term.slice(0, -1) : term;
-                return hay.indexOf(root) !== -1;
-            });
-        }).slice(0, 6);
-
-        matchedDrugs.forEach(function(drug) {
-            const dCard = document.createElement('div');
-            dCard.style.cssText = 'background:#f0fdf4; border:1px solid #16a34a; border-left:5px solid #15803d; border-radius:10px; padding:12px 16px; margin-bottom:12px;';
-            dCard.innerHTML = '<div style="font-weight:800; color:#14532d; font-size:15px;">💊 İlaç Eşleşmesi: ' + drug.name + ' <span style="font-weight:500; font-size:12px; color:#374151;">(' + (drug.brands || drug.forms) + ')</span></div>' +
-                '<div style="font-size:13px; color:#1f2937; margin-top:4px;"><b>✅ Kullanım:</b> ' + drug.usage + '</div>' +
-                '<div style="font-size:12px; color:#991b1b; margin-top:4px;"><b>⛔ Dikkat / Risk:</b> ' + drug.contra + '</div>';
-            area.appendChild(dCard);
-        });
-    }
-
-    // Eşleşen Makale Kartları
+    // EŞLEŞEN MAKALE KARTLARINI GÖSTER
     results.forEach(function(row) {
         const card = document.createElement('div');
         card.className = 'article-card';
@@ -781,15 +775,6 @@ function executeSearch() {
     });
 }
 
-const sBtn = document.getElementById('searchBtn');
-if (sBtn) sBtn.addEventListener('click', executeSearch);
-
-const sInp = document.getElementById('searchInput');
-if (sInp) {
-    sInp.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') executeSearch();
-    });
-}
 const updateBtn = document.getElementById('forceUpdateBtn');
 if (updateBtn) {
     updateBtn.addEventListener('click', function() {
