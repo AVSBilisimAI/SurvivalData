@@ -993,7 +993,6 @@ const UI_TRANSLATIONS = {
     'Merhem & Cilt Bakımı': 'Ointments & Skin Care',
     'Kadın Hastalıkları': 'Women Health',
     'Çocuk İlaçları': 'Pediatric Medications',
-    // Makale Başlıkları Çevrimdışı Sözlüğü
     'Acil Avlanma, Pasif Tuzaklar ve Protein Eldesi': 'Emergency Hunting, Passive Traps & Protein Acquisition',
     'Acil Barınak Yapımı ve Güvenli Yer Seçimi': 'Emergency Shelter Building & Safe Site Selection',
     'Ateş Yakma Teknikleri ve Isı Koruma': 'Fire Starting Techniques & Heat Retention',
@@ -1015,6 +1014,19 @@ const REVERSE_TRANSLATIONS = {};
 Object.keys(UI_TRANSLATIONS).forEach(function(k) {
     REVERSE_TRANSLATIONS[UI_TRANSLATIONS[k]] = k;
 });
+
+function runGoogleTranslate(text, onSuccess) {
+    const apiUrl = ['https://googleapis.com', '/translate_a/single?client=gtx&sl=tr&tl=en&dt=t&q='].join('') + encodeURIComponent(text);
+    fetch(apiUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data && Array.isArray(data[0])) {
+                const translated = data[0].map(function(item) { return item[0]; }).join('');
+                if (translated) onSuccess(translated);
+            }
+        })
+        .catch(function() {});
+}
 
 function translateInterface(targetLang) {
     const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
@@ -1064,45 +1076,25 @@ function translateInterface(targetLang) {
         el.innerText = text;
     });
 
-            // 1. Açık Makale İçeriğini (.reader-box) Çevir
-    const readerBox = document.querySelector('.reader-box');
-    if (readerBox && navigator.onLine && targetLang === 'EN') {
-        readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
-            if (!p.getAttribute('data-tr')) p.setAttribute('data-tr', p.innerHTML);
-            const rawText = p.innerText.trim();
-            if (rawText.length > 3) {
-                fetch('https://googleapis.com' + encodeURIComponent(rawText))
-                    .then(function(r) { return r.json(); })
-                    .then(function(data) {
-                        if (data && data) {
-                            p.innerText = data.map(function(item) { return item; }).join('');
-                        }
-                    }).catch(function() {});
-            }
-        });
-    } else if (readerBox && targetLang === 'TR') {
-        readerBox.querySelectorAll('[data-tr]').forEach(function(p) {
-            p.innerHTML = p.getAttribute('data-tr');
-        });
-    }
+    if (targetLang === 'EN') {
+        if (!navigator.onLine) return;
 
-                // 2. Farmakoloji Sayfası Uyarısı ve Kart İçeriklerini Çevir
-    const pharmaHeader = document.getElementById('pharma-header');
-    const contentArea = document.getElementById('content-area');
+        const targets = [];
+        const readerBox = document.querySelector('.reader-box');
+        if (readerBox) {
+            readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
+                if (p.innerText.trim().length > 3) targets.push(p);
+            });
+        }
 
-    if (currentMode === 'pharma') {
-        if (targetLang === 'EN') {
-            if (!navigator.onLine) {
-                alert('⚠️ İlaç açıklamalarının tam metin çevirisi için internet bağlantısı gereklidir.');
-                return;
-            }
-
-            const targets = [];
+        if (currentMode === 'pharma') {
+            const pharmaHeader = document.getElementById('pharma-header');
             if (pharmaHeader) {
                 pharmaHeader.querySelectorAll('div').forEach(function(d) {
                     if (d.children.length <= 1 && d.innerText.trim().startsWith('⚠️')) targets.push(d);
                 });
             }
+            const contentArea = document.getElementById('content-area');
             if (contentArea) {
                 contentArea.querySelectorAll('div, span').forEach(function(el) {
                     const txt = el.innerText.trim();
@@ -1111,25 +1103,29 @@ function translateInterface(targetLang) {
                     }
                 });
             }
-
-            // İsteklerin engellenmemesi için metinleri hafif gecikmeyle ve doğru JSON dizisiyle çevir
-            targets.forEach(function(el, idx) {
-                if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
-                const raw = el.innerText.trim();
-                setTimeout(function() {
-                    fetch('https://googleapis.com' + encodeURIComponent(raw))
-                        .then(function(r) { return r.json(); })
-                        .then(function(data) {
-                            if (data && Array.isArray(data[0])) {
-                                el.innerText = data[0].map(function(item) { return item[0]; }).join('');
-                            }
-                        }).catch(function() {});
-                }, idx * 40);
-            });
-        } else if (targetLang === 'TR') {
-            document.querySelectorAll('[data-tr]').forEach(function(el) {
-                el.innerHTML = el.getAttribute('data-tr');
-            });
         }
+
+        targets.forEach(function(el, idx) {
+            if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
+            const raw = el.innerText.trim();
+            setTimeout(function() {
+                runGoogleTranslate(raw, function(translatedText) {
+                    el.innerText = translatedText;
+                });
+            }, idx * 40);
+        });
+    } else {
+        document.querySelectorAll('[data-tr]').forEach(function(el) {
+            el.innerHTML = el.getAttribute('data-tr');
+        });
     }
+}
+
+const langBtn = document.getElementById('langToggleBtn');
+if (langBtn) {
+    langBtn.addEventListener('click', function() {
+        currentLang = currentLang === 'TR' ? 'EN' : 'TR';
+        langBtn.innerText = currentLang === 'TR' ? '🌐 EN' : '🌐 TR';
+        translateInterface(currentLang);
+    });
 }
