@@ -245,6 +245,8 @@ function resetToHome(e) {
     if (e) e.preventDefault();
     currentMode = 'encyclopedia';
     selectedLetter = 'ALL';
+    document.getElementById('pharma-header').style.display = 'none';
+    document.getElementById('modePharmaBtn').classList.remove('btn-active');
     document.getElementById('searchInput').value = '';
     document.getElementById('filterCategory').value = 'ALL';
     document.getElementById('filterRisk').value = 'ALL';
@@ -282,6 +284,8 @@ document.getElementById('viewCatBtn').addEventListener('click', function(e) {
 document.getElementById('modeAiBtn').addEventListener('click', function(e) {
     currentMode = 'ai';
     e.target.classList.add('btn-active');
+    document.getElementById('pharma-header').style.display = 'none';
+    document.getElementById('modePharmaBtn').classList.remove('btn-active');
     document.getElementById('modeEncyclopediaBtn').classList.remove('btn-active');
     document.getElementById('directory-header').style.display = 'none';
     const input = document.getElementById('searchInput');
@@ -693,6 +697,25 @@ function executeSearch() {
         aiBox.appendChild(infoDiv);
         area.appendChild(aiBox);
     }
+    // Danışman (AI) ve Ana Arama İçinde İlaç Eşleşmeleri
+    if (window.PHARMA_DATA && Array.isArray(window.PHARMA_DATA)) {
+        const matchedDrugs = window.PHARMA_DATA.filter(function(drug) {
+            const hay = (drug.name + ' ' + (drug.brands || '') + ' ' + drug.usage + ' ' + drug.category).toLowerCase();
+            return searchTerms.some(function(term) {
+                const root = term.length > 4 ? term.slice(0, -1) : term;
+                return hay.indexOf(root) !== -1;
+            });
+        }).slice(0, 4);
+
+        matchedDrugs.forEach(function(drug) {
+            const dCard = document.createElement('div');
+            dCard.style.cssText = 'background:#f0fdf4; border:1px solid #16a34a; border-left:5px solid #15803d; border-radius:10px; padding:12px 16px; margin-bottom:12px;';
+            dCard.innerHTML = '<div style="font-weight:800; color:#14532d; font-size:15px;">💊 İlaç Eşleşmesi: ' + drug.name + ' <span style="font-weight:400; font-size:12px;">(' + (drug.brands || drug.forms) + ')</span></div>' +
+                '<div style="font-size:13px; color:#1f2937; margin-top:4px;"><b>Kullanım:</b> ' + drug.usage + '</div>' +
+                '<div style="font-size:12px; color:#991b1b; margin-top:4px;"><b>⛔ Dikkat:</b> ' + drug.contra + '</div>';
+            area.appendChild(dCard);
+        });
+    }
 
     // Eşleşen Makale Kartları
     results.forEach(function(row) {
@@ -764,3 +787,154 @@ if (updateBtn) {
         }
     });
 }
+// ==========================================
+// FARMAKOLOJİ ANSİKLOPEDİSİ MODÜLÜ
+// ==========================================
+let pharmaSelectedLetter = 'ALL';
+
+function initPharmaModule() {
+    if (!window.PHARMA_DATA || !Array.isArray(window.PHARMA_DATA)) return;
+
+    // Kategorileri doldur
+    const catSelect = document.getElementById('pharmaCategoryFilter');
+    if (catSelect) {
+        const cats = Array.from(new Set(window.PHARMA_DATA.map(function(p) { return p.category; }))).sort(function(a, b) {
+            return a.localeCompare(b, 'tr');
+        });
+        catSelect.innerHTML = '<option value="ALL">Tüm Kategoriler</option>';
+        cats.forEach(function(c) {
+            catSelect.innerHTML += '<option value="' + c + '">' + c + '</option>';
+        });
+    }
+
+    // A-Z Harf Barını oluştur
+    const bar = document.getElementById('pharma-alpha-bar');
+    if (bar) {
+        const letters = Array.from(new Set(window.PHARMA_DATA.map(function(p) {
+            return p.name.charAt(0).toUpperCase();
+        }))).sort(function(a, b) { return a.localeCompare(b, 'tr'); });
+
+        let html = '<button class="alpha-btn active" data-letter="ALL">Tümü</button>';
+        letters.forEach(function(l) {
+            html += '<button class="alpha-btn" data-letter="' + l + '">' + l + '</button>';
+        });
+        bar.innerHTML = html;
+
+        bar.querySelectorAll('.alpha-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                bar.querySelectorAll('.alpha-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                pharmaSelectedLetter = btn.getAttribute('data-letter');
+                renderPharmaList();
+            });
+        });
+    }
+}
+
+function renderPharmaList() {
+    const area = document.getElementById('content-area');
+    if (!area || !window.PHARMA_DATA) return;
+
+    const searchVal = (document.getElementById('pharmaSearchInput').value || '').toLowerCase().trim();
+    const catVal = document.getElementById('pharmaCategoryFilter').value;
+    const formVal = document.getElementById('pharmaFormFilter').value;
+
+    const filtered = window.PHARMA_DATA.filter(function(item) {
+        const matchLetter = pharmaSelectedLetter === 'ALL' || item.name.toUpperCase().startsWith(pharmaSelectedLetter);
+        const matchCat = catVal === 'ALL' || item.category === catVal;
+        const matchForm = formVal === 'ALL' || (item.forms && item.forms.toLowerCase().indexOf(formVal.toLowerCase()) !== -1);
+        const matchSearch = !searchVal ||
+            item.name.toLowerCase().indexOf(searchVal) !== -1 ||
+            (item.brands && item.brands.toLowerCase().indexOf(searchVal) !== -1) ||
+            (item.usage && item.usage.toLowerCase().indexOf(searchVal) !== -1);
+
+        return matchLetter && matchCat && matchForm && matchSearch;
+    }).sort(function(a, b) { return a.name.localeCompare(b.name, 'tr'); });
+
+    document.getElementById('pharmaCountText').innerText = filtered.length + ' etken madde';
+    area.innerHTML = '';
+
+    if (filtered.length === 0) {
+        area.innerHTML = '<div class="reader-box"><p>Arama kriterlerine uygun ilaç veya etken madde bulunamadı.</p></div>';
+        return;
+    }
+
+    filtered.forEach(function(drug) {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#ffffff; border:1px solid #d1d5db; border-left:4px solid #2d5a27; border-radius:10px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04);';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:8px;';
+
+        const titleWrap = document.createElement('div');
+        const title = document.createElement('strong');
+        title.style.cssText = 'font-size:16px; color:#111827; display:block;';
+        title.innerText = drug.name;
+        titleWrap.appendChild(title);
+
+        if (drug.brands) {
+            const brands = document.createElement('span');
+            brands.style.cssText = 'font-size:12px; color:#4b5563; font-weight:600;';
+            brands.innerText = 'Piyasa İsimleri: ' + drug.brands;
+            titleWrap.appendChild(brands);
+        }
+        header.appendChild(titleWrap);
+
+        const badges = document.createElement('div');
+        badges.style.cssText = 'display:flex; gap:6px; flex-wrap:wrap;';
+
+        const catBadge = document.createElement('span');
+        catBadge.className = 'badge b-cat';
+        catBadge.innerText = drug.category;
+        badges.appendChild(catBadge);
+
+        const formBadge = document.createElement('span');
+        formBadge.className = 'badge b-time';
+        formBadge.innerText = '📦 ' + drug.forms;
+        badges.appendChild(formBadge);
+
+        header.appendChild(badges);
+        card.appendChild(header);
+
+        const usageDiv = document.createElement('div');
+        usageDiv.style.cssText = 'font-size:13px; color:#1f2937; margin-bottom:6px;';
+        usageDiv.innerHTML = '<b>✅ Ne İçin Kullanılır:</b> ' + drug.usage;
+        card.appendChild(usageDiv);
+
+        const contraDiv = document.createElement('div');
+        contraDiv.style.cssText = 'font-size:13px; color:#991b1b; background:#fef2f2; padding:6px 10px; border-radius:6px; margin-bottom:6px;';
+        contraDiv.innerHTML = '<b>⛔ Kullanılmayacak Durumlar / Risk:</b> ' + drug.contra;
+        card.appendChild(contraDiv);
+
+        if (drug.fieldNote) {
+            const noteDiv = document.createElement('div');
+            noteDiv.style.cssText = 'font-size:12px; color:#374151; font-style:italic;';
+            noteDiv.innerHTML = '<b>🏕️ Saha / SKT Notu:</b> ' + drug.fieldNote;
+            card.appendChild(noteDiv);
+        }
+
+        area.appendChild(card);
+    });
+}
+
+// Farmakoloji Sekmesi Buton Dinleyicisi
+const pharmaModeBtn = document.getElementById('modePharmaBtn');
+if (pharmaModeBtn) {
+    pharmaModeBtn.addEventListener('click', function() {
+        currentMode = 'pharma';
+        document.getElementById('modePharmaBtn').classList.add('btn-active');
+        document.getElementById('modeEncyclopediaBtn').classList.remove('btn-active');
+        document.getElementById('modeAiBtn').classList.remove('btn-active');
+        document.getElementById('directory-header').style.display = 'none';
+        document.getElementById('pharma-header').style.display = 'block';
+        initPharmaModule();
+        renderPharmaList();
+    });
+}
+
+['pharmaSearchInput', 'pharmaCategoryFilter', 'pharmaFormFilter'].forEach(function(elId) {
+    const el = document.getElementById(elId);
+    if (el) {
+        el.addEventListener(elId === 'pharmaSearchInput' ? 'input' : 'change', renderPharmaList);
+    }
+});

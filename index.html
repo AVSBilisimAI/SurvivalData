@@ -61,6 +61,7 @@
         <div class="nav-tabs">
             <button class="btn" id="modeAiBtn">Danışman (AI)</button>
             <button class="btn btn-active" id="modeEncyclopediaBtn">Ansiklopedi</button>
+            <button class="btn" id="modePharmaBtn">💊 Farmakoloji</button>
             <button class="btn" id="toggleMapBtn">Harita</button>
             <button class="btn" id="forceUpdateBtn" title="En son verileri indir ve yenile">🔄 Güncelle</button>
         </div>
@@ -136,12 +137,52 @@
             </div>
             <div class="alpha-bar" id="alpha-bar"></div>
         </div>
+                <!-- Farmakoloji Ansiklopedisi Kontrol Paneli -->
+        <div id="pharma-header" style="display:none;">
+            <h1 class="page-title">💊 Saha Farmakoloji Ansiklopedisi</h1>
+            <div style="background:#fef2f2; border-left:4px solid #dc2626; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:12px; color:#991b1b;">
+                ⚠️ <b>Saha Uyarısı:</b> Terkedilmiş ortamlarda bulunan ilaçların ambalaj bütünlüğünü, renk değişimini ve son kullanma tarihini kontrol edin. Bozulmuş tetrasiklin türevleri ve rengi değişmiş enjektör sıvıları ölümcül organ hasarına yol açar.
+            </div>
+
+            <!-- A-Z Harf Filtresi -->
+            <div class="alpha-bar" id="pharma-alpha-bar"></div>
+
+            <!-- Kategori, Form ve Özel İlaç Arama -->
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>İlaç / Etken Madde Ara</label>
+                    <input type="text" id="pharmaSearchInput" placeholder="Örn: Amoksisilin, Aspirin, Morfin..." style="width:100%; padding:7px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="filter-item">
+                    <label>Tıbbi Kategori</label>
+                    <select id="pharmaCategoryFilter"><option value="ALL">Tüm Kategoriler</option></select>
+                </div>
+                <div class="filter-item">
+                    <label>İlaç Formu</label>
+                    <select id="pharmaFormFilter">
+                        <option value="ALL">Tüm Formlar</option>
+                        <option value="Tablet">Tablet / Hap / Kapsül</option>
+                        <option value="Şurup">Şurup / Süspansiyon</option>
+                        <option value="Enjektör">Ampul / Flakon (Enjektör)</option>
+                        <option value="Merhem">Merhem / Krem / Jel</option>
+                        <option value="Damla">Damla / Sprey / İnhaler</option>
+                        <option value="Solüsyon">Solüsyon / Serum</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="view-controls">
+                <div style="font-size:13px; font-weight:700; color:#2d5a27;" id="pharmaActiveFilterText">Tüm Etken Maddeler</div>
+                <div class="count-badge" id="pharmaCountText">0 ilaç</div>
+            </div>
+        </div>
+
         <div id="content-area"></div>
     </main>
 
     <script src="./data/articles_data.js"></script>
     <script src="./data/survival_poi.js"></script>
-
+    <script src="./data/pharma_data.js"></script>
     <script src="./assets/js/app.js"></script>
     <script>
       if ('serviceWorker' in navigator) {

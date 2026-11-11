@@ -9,7 +9,8 @@ const ASSETS_TO_CACHE = [
   './maps/leaflet.css',
   './maps/leaflet.js',
   './manifest.json',
-  '.assets/icon.svg'
+  '.assets/icon.svg',
+  './data/pharma_data.js'
 ];
 
 self.addEventListener('install', function(event) {
