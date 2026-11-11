@@ -941,6 +941,7 @@ if (pharmaModeBtn) {
     }
 });
 // ==========================================
+// ==========================================
 // HİBRİT (ÇEVRİMDIŞI + TAM METİN) TR / EN ÇEVİRİ MOTORU
 // ==========================================
 let currentLang = 'TR';
@@ -992,50 +993,29 @@ const UI_TRANSLATIONS = {
     'Karaciğer & Böbrek': 'Liver & Kidney',
     'Merhem & Cilt Bakımı': 'Ointments & Skin Care',
     'Kadın Hastalıkları': 'Women Health',
-    'Çocuk İlaçları': 'Pediatric Medications'
+    'Çocuk İlaçları': 'Pediatric Medications',
+    // Makale Başlıkları Çevrimdışı Sözlüğü
+    'Acil Avlanma, Pasif Tuzaklar ve Protein Eldesi': 'Emergency Hunting, Passive Traps & Protein Acquisition',
+    'Acil Barınak Yapımı ve Güvenli Yer Seçimi': 'Emergency Shelter Building & Safe Site Selection',
+    'Ateş Yakma Teknikleri ve Isı Koruma': 'Fire Starting Techniques & Heat Retention',
+    'Su Bulma, Filtreleme ve Arıtma Yöntemleri': 'Water Sourcing, Filtration & Purification Methods',
+    'İlk Yardım, Kanama Durdurma ve Yara Bakımı': 'First Aid, Hemorrhage Control & Wound Care',
+    'Zehirli ve Yenilebilir Yabani Bitkiler': 'Poisonous vs. Edible Wild Plants',
+    'Yön Bulma, Doğal Navigasyon ve İşaret Verme': 'Navigation, Natural Orientation & Signaling',
+    'Temel Tarım, Toprak Hazırlığı ve Tohum Saklama': 'Basic Agriculture, Soil Preparation & Seed Saving',
+    'Gıda Saklama, Kurutma, Tuzlama ve Fermantasyon': 'Food Preservation, Drying, Salting & Fermentation',
+    'Doğal İlaçlar, Şifalı Bitkiler ve Hijyen': 'Natural Remedies, Medicinal Herbs & Hygiene',
+    'Temel Alet Yapımı, İp ve Düğüm Teknikleri': 'Basic Tool Making, Cordage & Knot Techniques',
+    'Çömlekçilik, Kil İşleme ve Basit Fırın Yapımı': 'Pottery, Clay Processing & Primitive Kiln Building',
+    'Temel Demir İşleme ve Metalurji': 'Basic Blacksmithing & Metallurgy',
+    'Yenilenebilir Enerji, Su Çarkı ve Basit Elektrik': 'Renewable Energy, Waterwheel & Basic Electricity',
+    'Sabun, Kül Suyu ve Temizlik Maddesi Üretimi': 'Soap, Lye & Cleaning Agent Production'
 };
 
 const REVERSE_TRANSLATIONS = {};
 Object.keys(UI_TRANSLATIONS).forEach(function(k) {
     REVERSE_TRANSLATIONS[UI_TRANSLATIONS[k]] = k;
 });
-
-function translateBatchElements(elements) {
-    if (!elements || elements.length === 0) return;
-
-    const chunkSize = 15;
-    for (let i = 0; i < elements.length; i += chunkSize) {
-        const chunk = elements.slice(i, i + chunkSize);
-        const combinedText = chunk.map(function(el) {
-            return el.innerText.trim().replace(/\n+/g, ' ');
-        }).join('\n');
-
-        const url = 'https://googleapis.com' + encodeURIComponent(combinedText);
-
-        fetch(url)
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                const sentences = Array.isArray(data) ? data.at(0) : null;
-                if (Array.isArray(sentences)) {
-                    let fullTranslated = '';
-                    sentences.forEach(function(pair) {
-                        if (Array.isArray(pair) && pair.at(0)) {
-                            fullTranslated += pair.at(0);
-                        }
-                    });
-                    const lines = fullTranslated.split('\n');
-                    chunk.forEach(function(el, idx) {
-                        const line = lines.at(idx);
-                        if (line && line.trim().length > 0) {
-                            el.innerText = line.trim();
-                        }
-                    });
-                }
-            })
-            .catch(function() {});
-    }
-}
-
 
 function translateInterface(targetLang) {
     const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
@@ -1085,62 +1065,28 @@ function translateInterface(targetLang) {
         el.innerText = text;
     });
 
-    if (targetLang === 'EN') {
-        const targets = [];
-
-        // 1. Ana Sayfa Ansiklopedi Kart Başlıkları
-        document.querySelectorAll('.card-title').forEach(function(titleEl) {
-            if (titleEl.innerText.trim().length > 2) {
-                if (!titleEl.getAttribute('data-tr')) titleEl.setAttribute('data-tr', titleEl.innerHTML);
-                targets.push(titleEl);
+    // Makale veya İlaç içeriği açıksa ve internet varsa uzun metinleri otomatik çevir
+    const readerBox = document.querySelector('.reader-box');
+    if (readerBox && navigator.onLine && targetLang === 'EN') {
+        const paragraphs = readerBox.querySelectorAll('p, li, h1, h2, h3');
+        paragraphs.forEach(function(p) {
+            if (!p.getAttribute('data-tr')) {
+                p.setAttribute('data-tr', p.innerHTML);
+            }
+            const rawText = p.innerText.trim();
+            if (rawText.length > 3) {
+                fetch('https://googleapis.com' + encodeURIComponent(rawText))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data[0]) {
+                            p.innerText = data[0].map(function(item) { return item[0]; }).join('');
+                        }
+                    }).catch(function() {});
             }
         });
-
-        // 2. Açık Makale İçeriği
-        const readerBox = document.querySelector('.reader-box');
-        if (readerBox) {
-            readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
-                if (p.innerText.trim().length > 3) {
-                    if (!p.getAttribute('data-tr')) p.setAttribute('data-tr', p.innerHTML);
-                    targets.push(p);
-                }
-            });
-        }
-
-        // 3. Farmakoloji Uyarı Kutusu
-        const pharmaHeader = document.getElementById('pharma-header');
-        if (pharmaHeader && pharmaHeader.style.display !== 'none') {
-            pharmaHeader.querySelectorAll('div').forEach(function(d) {
-                if (d.children.length <= 1 && d.innerText.trim().startsWith('⚠️')) {
-                    if (!d.getAttribute('data-tr')) d.setAttribute('data-tr', d.innerHTML);
-                    targets.push(d);
-                }
-            });
-        }
-
-        // 4. Farmakoloji Kart İçerikleri
-        const contentArea = document.getElementById('content-area');
-        if (contentArea) {
-            contentArea.querySelectorAll('div, span').forEach(function(el) {
-                const txt = el.innerText.trim();
-                if (txt.startsWith('✅') || txt.startsWith('⛔') || txt.startsWith('🏕️') || txt.startsWith('Piyasa İsimleri:')) {
-                    if (!el.getAttribute('data-tr')) el.setAttribute('data-tr', el.innerHTML);
-                    el.innerHTML = el.innerHTML
-                        .replace('Ne İçin Kullanılır:', 'Indications / Usage:')
-                        .replace('Kullanılmayacak Durumlar / Risk:', 'Contraindications / Risk:')
-                        .replace('Saha / SKT Notu:', 'Field / Expiry Note:')
-                        .replace('Piyasa İsimleri:', 'Brand Names:');
-                    targets.push(el);
-                }
-            });
-        }
-
-        if (navigator.onLine && targets.length > 0) {
-            translateBatchElements(targets);
-        }
-    } else {
-        document.querySelectorAll('[data-tr]').forEach(function(el) {
-            el.innerHTML = el.getAttribute('data-tr');
+    } else if (readerBox && targetLang === 'TR') {
+        readerBox.querySelectorAll('[data-tr]').forEach(function(p) {
+            p.innerHTML = p.getAttribute('data-tr');
         });
     }
 }
