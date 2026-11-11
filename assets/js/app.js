@@ -737,3 +737,30 @@ if (sInp) {
         if (e.key === 'Enter') executeSearch();
     });
 }
+const updateBtn = document.getElementById('forceUpdateBtn');
+if (updateBtn) {
+    updateBtn.addEventListener('click', function() {
+        // İnternet yoksa çevrimdışı verilerin silinmesini engelle
+        if (!navigator.onLine) {
+            alert('⚠️ İnternet bağlantınız yok! Mevcut çevrimdışı verileriniz korunuyor. Güncelleme için internete bağlanın.');
+            return;
+        }
+
+        updateBtn.innerText = '⏳ Güncelleniyor...';
+        updateBtn.disabled = true;
+
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                return Promise.all(names.map(function(name) {
+                    return caches.delete(name);
+                }));
+            }).then(function() {
+                window.location.reload(true);
+            }).catch(function() {
+                window.location.reload(true);
+            });
+        } else {
+            window.location.reload(true);
+        }
+    });
+}
