@@ -716,6 +716,36 @@ function executeSearch() {
             area.appendChild(dCard);
         });
     }
+    // Danışman (AI) ve Ana Arama İçinde İlaç Eşleşmeleri
+    if (window.PHARMA_DATA && Array.isArray(window.PHARMA_DATA)) {
+        const qNorm = rawQuery.toLocaleLowerCase('tr-TR');
+        const termsNorm = qNorm.split(/\s+/).filter(function(w) { return w.length > 2; });
+        const activeTerms = termsNorm.length > 0 ? termsNorm : [qNorm];
+
+        const matchedDrugs = window.PHARMA_DATA.filter(function(drug) {
+            const hay = (
+                (drug.name || '') + ' ' +
+                (drug.brands || '') + ' ' +
+                (drug.usage || '') + ' ' +
+                (drug.contra || '') + ' ' +
+                (drug.category || '')
+            ).toLocaleLowerCase('tr-TR');
+
+            return activeTerms.some(function(term) {
+                const root = term.length > 4 ? term.slice(0, -1) : term;
+                return hay.indexOf(root) !== -1;
+            });
+        }).slice(0, 6);
+
+        matchedDrugs.forEach(function(drug) {
+            const dCard = document.createElement('div');
+            dCard.style.cssText = 'background:#f0fdf4; border:1px solid #16a34a; border-left:5px solid #15803d; border-radius:10px; padding:12px 16px; margin-bottom:12px;';
+            dCard.innerHTML = '<div style="font-weight:800; color:#14532d; font-size:15px;">💊 İlaç Eşleşmesi: ' + drug.name + ' <span style="font-weight:500; font-size:12px; color:#374151;">(' + (drug.brands || drug.forms) + ')</span></div>' +
+                '<div style="font-size:13px; color:#1f2937; margin-top:4px;"><b>✅ Kullanım:</b> ' + drug.usage + '</div>' +
+                '<div style="font-size:12px; color:#991b1b; margin-top:4px;"><b>⛔ Dikkat / Risk:</b> ' + drug.contra + '</div>';
+            area.appendChild(dCard);
+        });
+    }
 
     // Eşleşen Makale Kartları
     results.forEach(function(row) {
