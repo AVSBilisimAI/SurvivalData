@@ -14,6 +14,8 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', function(event) {
+    if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith(self.location.origin)) return;
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.addAll(ASSETS_TO_CACHE);
