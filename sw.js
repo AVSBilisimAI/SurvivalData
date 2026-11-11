@@ -1,14 +1,15 @@
-const CACHE_NAME = 'avs-survival-v3';
+const CACHE_NAME = 'avs-survival-auto';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './assets/js/app.js',
+  '.assets/js/app.js',
   './data/articles_data.js',
+  './data/survival_poi.js',
   './assets/js/marked.min.js',
   './maps/leaflet.css',
   './maps/leaflet.js',
   './manifest.json',
-  './assets/icon.svg'
+  '.assets/icon.svg'
 ];
 
 self.addEventListener('install', function(event) {
@@ -35,10 +36,23 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
+// Önce İnternetten En Güncel Dosyayı Çek, İnternet Yoksa Önbellekten Aç
 self.addEventListener('fetch', function(event) {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then(function(cachedResponse) {
-      return cachedResponse || fetch(event.request);
-    })
+    fetch(event.request)
+      .then(function(networkResponse) {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(function() {
+        return caches.match(event.request);
+      })
   );
 });
