@@ -1015,17 +1015,19 @@ function translateBatchElements(elements) {
         fetch(url)
             .then(function(res) { return res.json(); })
             .then(function(data) {
-                if (data && data[0]) {
+                const sentences = Array.isArray(data) ? data.at(0) : null;
+                if (Array.isArray(sentences)) {
                     let fullTranslated = '';
-                    for (let j = 0; j < data[0].length; j++) {
-                        if (data[0][j] && data[0][j][0]) {
-                            fullTranslated += data[0][j][0];
+                    sentences.forEach(function(pair) {
+                        if (Array.isArray(pair) && pair.at(0)) {
+                            fullTranslated += pair.at(0);
                         }
-                    }
+                    });
                     const lines = fullTranslated.split('\n');
                     chunk.forEach(function(el, idx) {
-                        if (lines[idx] && lines[idx].trim().length > 0) {
-                            el.innerText = lines[idx].trim();
+                        const line = lines.at(idx);
+                        if (line && line.trim().length > 0) {
+                            el.innerText = line.trim();
                         }
                     });
                 }
@@ -1033,6 +1035,7 @@ function translateBatchElements(elements) {
             .catch(function() {});
     }
 }
+
 
 function translateInterface(targetLang) {
     const dict = targetLang === 'EN' ? UI_TRANSLATIONS : REVERSE_TRANSLATIONS;
