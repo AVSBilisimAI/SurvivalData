@@ -1085,6 +1085,15 @@ function translateInterface(targetLang) {
     if (targetLang === 'EN') {
         const targets = [];
 
+        // 1. Ana Sayfa Ansiklopedi Kart Başlıkları
+        document.querySelectorAll('.card-title').forEach(function(titleEl) {
+            if (titleEl.innerText.trim().length > 2) {
+                if (!titleEl.getAttribute('data-tr')) titleEl.setAttribute('data-tr', titleEl.innerHTML);
+                targets.push(titleEl);
+            }
+        });
+
+        // 2. Açık Makale İçeriği
         const readerBox = document.querySelector('.reader-box');
         if (readerBox) {
             readerBox.querySelectorAll('p, li, h1, h2, h3').forEach(function(p) {
@@ -1095,6 +1104,7 @@ function translateInterface(targetLang) {
             });
         }
 
+        // 3. Farmakoloji Uyarı Kutusu
         const pharmaHeader = document.getElementById('pharma-header');
         if (pharmaHeader && pharmaHeader.style.display !== 'none') {
             pharmaHeader.querySelectorAll('div').forEach(function(d) {
@@ -1105,6 +1115,7 @@ function translateInterface(targetLang) {
             });
         }
 
+        // 4. Farmakoloji Kart İçerikleri
         const contentArea = document.getElementById('content-area');
         if (contentArea) {
             contentArea.querySelectorAll('div, span').forEach(function(el) {
