@@ -941,61 +941,106 @@ if (pharmaModeBtn) {
     }
 });
 // ==========================================
-// ==========================================
-// MOBİL GERİ TUŞU VE ÇIKIŞ KORUMA SİSTEMİ
+// MOBİL GERİ TUŞU, ÇIKIŞ KORUMASI VE SABİT YÜZEN GERİ DÖN BUTONU
 // ==========================================
 (function() {
     let exitWarningActive = false;
+    let historyInitialized = false;
 
-    // Sayfa ilk açıldığında tarayıcı geçmişine koruma tamponu ekle
-    if (window.history && window.history.pushState) {
-        window.history.replaceState({ avsScreen: 'home' }, '');
-        window.history.pushState({ avsScreen: 'guard' }, '');
+    // 1. Sağ Alt Köşede Her Zaman Sabit Duran Büyük "Geri Dön" Butonu Oluştur
+    const floatingBackBtn = document.createElement('button');
+    floatingBackBtn.id = 'avs-floating-back';
+    floatingBackBtn.innerHTML = '⬅️ Geri Dön';
+    floatingBackBtn.style.cssText = 'display:none; position:fixed; bottom:20px; right:20px; background:#2d5a27; color:#ffffff; border:2px solid #ffffff; padding:12px 18px; border-radius:30px; font-size:15px; font-weight:800; z-index:9998; box-shadow:0 4px 14px rgba(0,0,0,0.35); cursor:pointer;';
+    document.body.appendChild(floatingBackBtn);
+
+    function updateFloatingButton() {
+        const mapWrap = document.getElementById('map-wrapper');
+        const pharmaHeader = document.getElementById('pharma-header');
+        const dirHeader = document.getElementById('directory-header');
+
+        const isMapOpen = mapWrap && mapWrap.style.display === 'block';
+        const isInPharma = pharmaHeader && pharmaHeader.style.display === 'block';
+        const isInSubPage = dirHeader && dirHeader.style.display === 'none';
+
+        if (isMapOpen || isInPharma || isInSubPage) {
+            floatingBackBtn.style.display = 'block';
+        } else {
+            floatingBackBtn.style.display = 'none';
+        }
     }
 
-    // Ekran değişimlerinde geçmişe adım kaydet
+    // Sabit yüzen butona basıldığında bir önceki ekrana dön
+    floatingBackBtn.addEventListener('click', function() {
+        const mapWrap = document.getElementById('map-wrapper');
+        if (mapWrap && mapWrap.style.display === 'block') {
+            mapWrap.style.display = 'none';
+            updateFloatingButton();
+            return;
+        }
+        if (typeof resetToHome === 'function') {
+            resetToHome();
+        }
+        updateFloatingButton();
+    });
+
+    // 2. Tarayıcı Güvenlik Kuralına Uygun İlk Dokunuşta Geçmiş Tamponu Kurma
+    function armHistoryGuard() {
+        if (!historyInitialized && window.history && window.history.pushState) {
+            historyInitialized = true;
+            window.history.pushState({ avsGuard: 1 }, '');
+            window.history.pushState({ avsGuard: 2 }, '');
+        }
+    }
+
+    document.addEventListener('touchstart', armHistoryGuard, { once: true });
     document.addEventListener('click', function(e) {
+        armHistoryGuard();
+        setTimeout(updateFloatingButton, 80);
+
         const target = e.target.closest('.article-card, #modePharmaBtn, #modeAiBtn, #toggleMapBtn, #searchBtn');
         if (target && window.history && window.history.pushState) {
-            window.history.pushState({ avsScreen: 'subview' }, '');
+            window.history.pushState({ avsView: Date.now() }, '');
         }
     });
 
-    // Telefonun geri tuşuna (popstate) basıldığında çalışacak kontrol
+    // 3. Telefonun Geri Tuşuna Basıldığında Yakala
     window.addEventListener('popstate', function() {
         const mapWrap = document.getElementById('map-wrapper');
         const pharmaHeader = document.getElementById('pharma-header');
         const dirHeader = document.getElementById('directory-header');
 
-        // 1. Harita açıksa önce haritayı kapat
+        // Harita açıksa kapat
         if (mapWrap && mapWrap.style.display === 'block') {
             mapWrap.style.display = 'none';
-            window.history.pushState({ avsScreen: 'guard' }, '');
+            updateFloatingButton();
+            window.history.pushState({ avsGuard: 2 }, '');
             return;
         }
 
-        // 2. Makale okuma ekranında, arama sonucunda veya Farmakoloji sekmesindeyse Ana Sayfaya dön
-        const isInReaderOrSearch = dirHeader && dirHeader.style.display === 'none';
+        // Makale, arama veya Farmakoloji ekranındaysa Ana Sayfaya dön
         const isInPharma = pharmaHeader && pharmaHeader.style.display === 'block';
+        const isInSubPage = dirHeader && dirHeader.style.display === 'none';
 
-        if (isInReaderOrSearch || isInPharma) {
+        if (isInPharma || isInSubPage) {
             if (typeof resetToHome === 'function') {
                 resetToHome();
             }
-            window.history.pushState({ avsScreen: 'guard' }, '');
+            updateFloatingButton();
+            window.history.pushState({ avsGuard: 2 }, '');
             return;
         }
 
-        // 3. Zaten Ana Sayfadaysa yanlışlıkla kapanmayı önle ve uyarı göster
+        // Ana Sayfadaysa kapanmayı engelle ve uyarı ver
         if (!exitWarningActive) {
             exitWarningActive = true;
-            window.history.pushState({ avsScreen: 'guard' }, '');
+            window.history.pushState({ avsGuard: 2 }, '');
 
             let toast = document.getElementById('avs-exit-toast');
             if (!toast) {
                 toast = document.createElement('div');
                 toast.id = 'avs-exit-toast';
-                toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111827; color:#ffffff; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:700; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.3); text-align:center; border:1px solid #374151;';
+                toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111827; color:#ffffff; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:700; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.35); text-align:center; border:2px solid #dc2626;';
                 toast.innerText = '⚠️ Çıkmak için geri tuşuna tekrar basın';
                 document.body.appendChild(toast);
             }
@@ -1007,6 +1052,8 @@ if (pharmaModeBtn) {
             }, 3000);
         }
     });
-})();
 
+    // Sayfa kaydırıldığında veya değiştiğinde buton durumunu güncel tut
+    setInterval(updateFloatingButton, 500);
+})();
 
