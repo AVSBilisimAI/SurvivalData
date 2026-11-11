@@ -450,7 +450,297 @@ window.PHARMA_DATA = [
         usage: "Tiroid bezi alınmış veya tiroid yetmezliği (hipotiroidi) olan hastaların günlük hormon desteği.",
         contra: "Tedavi edilmemiş böbreküstü bezi yetmezliği ve akut kalp krizinde kullanılmaz.",
         fieldNote: "Sabah aç karnına, başka ilaçlardan en az 30 dakika önce su ile alınmalıdır."
-    }
+    },
+        ,
+    // ==========================================
+    // 13. PİYASADA EN ÇOK BİLİNEN AĞRI KESİCİ VE SOĞUK ALGINLIĞI İLAÇLARI
+    // ==========================================
+    {
+        name: "Deksketoprofen (Arveles)",
+        brands: "Arveles, Dexofen, Elektra, Rastel",
+        category: "Ağrı Kesici & Ateş Düşürücüler",
+        forms: "Tablet, Enjektör (Ampul), Jel",
+        usage: "Şiddetli diş ağrısı, bel-boyun tutulması, kas-eklem ağrısı, adet sancısı ve ameliyat/travma sonrası keskin ağrılar.",
+        contra: "Mide ülseri/kanaması olanlarda, böbrek yetmezliğinde, hamileliğin son 3 ayında ve açık kanaması olan yaralılarda kullanılmaz.",
+        fieldNote: "Çok hızlı etki eden güçlü bir ağrı kesicidir; mideyi delmemesi için mutlaka tok karnına veya mide koruyucu ile alınmalıdır."
+    },
+    {
+        name: "Naproksen Sodyum (Apranax / Naprosyn)",
+        brands: "Apranax, Apranax Fort, Naprosyn, Aprol",
+        category: "Ağrı Kesici & Ateş Düşürücüler",
+        forms: "Tablet, Jel (Naprosyn Jel)",
+        usage: "Kas zedelenmeleri, burkulma, romatizmal ağrılar, şiddetli baş ağrısı ve adet sancısı.",
+        contra: "Mide kanaması, ağır kalp-böbrek yetmezliği ve kan sulandırıcı kullananlarda mide kanaması riskini ciddi artırır.",
+        fieldNote: "Jel formu (Naprosyn) mideye zarar vermeden doğrudan burkulan veya incinen bölgeye sürülerek ağrıyı keser."
+    },
+    {
+        name: "Parasetamol + Klorfeniramin + Psödoefedrin (Soğuk Algınlığı Kombinasyonları)",
+        brands: "A-ferin, Tylol Hot, Theraflu, Katarin, İburamin Cold",
+        category: "Solunum & Soğuk Algınlığı",
+        forms: "Tablet, Kapsül, Sıcak Su Tozu (Saşe), Çocuk Şurubu",
+        usage: "Grip, nezle, soğuk algınlığı, burun akıntısı, sinüzit tıkanıklığı, kırgınlık ve ateş.",
+        contra: "Yüksek tansiyonu (hipertansiyon) olanlarda içindeki psödoefedrin tansiyonu tehlikeli şekilde yükseltir; ağır kalp hastalarında kullanılmaz.",
+        fieldNote: "İçinde zaten Parasetamol olduğu için aynı anda ekstra Parol/Minoset içilirse karaciğer zehirlenmesi (doz aşımı) yapar."
+    },
+
+    // ==========================================
+    // 14. KAN SULANDIRICILAR, TANSİYON VE KOLESTEROL İLAÇLARI
+    // ==========================================
+    {
+        name: "Klopidogrel (Plavix)",
+        brands: "Plavix, Karum, Pingel, Planor",
+        category: "Kalp & Tansiyon",
+        forms: "Tablet",
+        usage: "Kalp krizi ve felç (inme) geçirmiş veya kalbine stent takılmış hastalarda damar tıkanıklığını ve pıhtıyı önleme.",
+        contra: "Aktif iç kanama, mide ülseri kanaması ve açık yaralı travma hastalarında kullanılmaz (kanamayı durdurmaz).",
+        fieldNote: "Stent takılı bir hastanın Plavix'i aniden kesmesi stentin pıhtıyla tıkanıp ani kalp krizine yol açmasına neden olur."
+    },
+    {
+        name: "Enoksaparin Sodyum (Kan Sulandırıcı İğne)",
+        brands: "Clexane, Oksapar, Enox",
+        category: "Kalp & Tansiyon",
+        forms: "Enjektör (Hazır Dolu Şırınga)",
+        usage: "Bacakta damar tıkanıklığı (derin ven trombozu), akciğer embolisi, uzun süre hareketsiz kalan yaralılarda pıhtı önleme ve kalp krizi.",
+        contra: "Aktif kanaması olanlarda, beyin kanaması şüphesinde ve kafa travmasında kullanılmaz.",
+        fieldNote: "Göbek çevresi cilt altına (subkutan) 90 derece dik açıyla uygulanır; enjeksiyon sonrası bölge ovuşturulmaz."
+    },
+    {
+        name: "Valsartan + Amlodipin / Olmesartan Kombinasyonları",
+        brands: "Exforge, Excaliba, Kombisar, Co-Diovan",
+        category: "Kalp & Tansiyon",
+        forms: "Tablet",
+        usage: "Tek ilaçla düşmeyen orta ve yüksek tansiyonun (hipertansiyon) günlük kontrolü.",
+        contra: "Hamilelerde (bebeğe ağır zarar verir) ve tansiyonu düşük olanlarda kullanılmaz.",
+        fieldNote: "İki farklı tansiyon ilacını tek tablette birleştirir; düzenli kullanan hastalarda ilaç aniden kesilirse tansiyon krizi gelişir."
+    },
+    {
+        name: "Fenofibrat / Atorvastatin (Kolesterol ve Trigliserid İlaçları)",
+        brands: "Lipantil, Lipitor, Ator, Crestor",
+        category: "Kalp & Tansiyon",
+        forms: "Kapsül, Tablet",
+        usage: "Kandaki yüksek yağ (trigliserid) ve kötü kolesterolü düşürerek damar sertliği ve pankreatit krizini önleme.",
+        contra: "Aktif karaciğer hastalığı, safra kesesi taşı tıkanıklığı ve hamilelikte kullanılmaz.",
+        fieldNote: "Acil hayat kurtarıcı değildir; ancak Lipantil kullanan aşırı yüksek trigliserid hastalarında ilacın uzun süre kesilmesi pankreas iltihabını tetikleyebilir."
+    },
+
+    // ==========================================
+    // 15. MİDE, REFLÜ, BAĞIRSAK, MÜSHİL, KARACİĞER VE BÖBREK İLAÇLARI
+    // ==========================================
+    {
+        name: "Kalsiyum Karbonat / Sodyum Aljinat (Mide Yanması ve Reflü)",
+        brands: "Rennie, Gaviscon, Talcid, Rennie Duo",
+        category: "Mide & Bağırsak",
+        forms: "Çiğneme Tableti, Şurup (Süspansiyon)",
+        usage: "Mide yanması, ekşime, asit reflüsü, yemek borusu tahrişi ve hafif mide ağrısı.",
+        contra: "Ağır böbrek yetmezliği ve kanda kalsiyum yüksekliği olanlarda yüksek dozda kullanılmaz.",
+        fieldNote: "Rennie çiğnenerek, Gaviscon ise yemeklerden sonra içilerek mide asidinin üzerine koruyucu bir bariyer örer; diğer ilaçlarla arasında 2 saat bırakılmalıdır."
+    },
+    {
+        name: "Hiyosin-N-Butilbromür (Karın ve Böbrek Sancısı Spazm Çözücü)",
+        brands: "Buscopan, Spazmol, Molit",
+        category: "Mide & Bağırsak",
+        forms: "Tablet, Enjektör (Ampul)",
+        usage: "Şiddetli mide-bağırsak krampları, safra kesesi sancısı, böbrek taşı düşürme ağrısı ve adet sancısı.",
+        contra: "Bağırsak tıkanıklığı, göz tansiyonu (glokom) ve idrar yapamama (prostat tıkanıklığı) durumlarında kullanılmaz.",
+        fieldNote: "Böbrek taşı sancısında Diklofenak (Voltaren) veya Arveles ile birlikte uygulandığında kasılan idrar kanalını gevşeterek taşın düşmesini kolaylaştırır."
+    },
+    {
+        name: "Bisakodil / Sennosid / Laktuloz (Müshil ve Kabızlık İlaçları)",
+        brands: "Dulcolax, Bekunis, Duphalac, Osmolak, Libalaks (Lavman)",
+        category: "Mide & Bağırsak",
+        forms: "Tablet, Şurup, Lavman (Rektal Tüp)",
+        usage: "Kuru gıda ve susuzluğa bağlı gelişen şiddetli kabızlıkta bağırsakları boşaltma.",
+        contra: "Apandisit şüphesi (sağ alt karın ağrısı), bağırsak düğümlenmesi ve şiddetli karın ağrısında KESİNLİKLE verilmez (bağırsağı patlatabilir).",
+        fieldNote: "Saha şartlarında kuru tayın ve az su tüketimi kabızlık yapar; müshil kullanırken mutlaka ekstra su içilmelidir."
+    },
+    {
+        name: "Simetikon / Trimebutin (Gaz ve Bağırsak Düzenleyici)",
+        brands: "Metsil, Sab Simplex, Debridat, Tribudat",
+        category: "Mide & Bağırsak",
+        forms: "Tablet, Damla, Şurup (Süspansiyon)",
+        usage: "Ağrılı bağırsak gazı sıkışması, şişkinlik, bebeklerde gaz sancısı (kolik) ve huzursuz bağırsak spazmları.",
+        contra: "Bilinen alerji dışında güvenli bir ilaçtır; kana karışmadan bağırsaktaki gaz kabarcıklarını patlatır.",
+        fieldNote: "Bebeklerde ve çocuklarda gaz sancısına bağlı ağlama krizlerinde Metsil/Sab Simplex damla güvenle kullanılır."
+    },
+    {
+        name: "Ursodeoksikolik Asit / Silimarin (Karaciğer ve Safra Koruyucular)",
+        brands: "Ursofalk, Ursactive, Legalon (Deve Dikeni Ekstresi)",
+        category: "Karaciğer & Böbrek",
+        forms: "Kapsül, Tablet",
+        usage: "Karaciğer yağlanması, safra çamuru, ilaç veya mantar/toksin kaynaklı karaciğer zorlanmalarında hücre yenilenmesini destekleme.",
+        contra: "Safra kesesi iltihabı (akut kolesistit) ve safra yollarının tamamen taşla tıkandığı durumlarda kullanılmaz.",
+        fieldNote: "Zehirli bitki, mantar veya bozuk gıda şüphesi sonrası karaciğeri korumak için destek olarak kullanılır."
+    },
+    {
+        name: "Tamsulosin / Potasyum Sitrat (Böbrek Taşı Düşürücü ve Kanal Açıcı)",
+        brands: "Flomax, Üromax, Urocit-K",
+        category: "Karaciğer & Böbrek",
+        forms: "Kapsül, Tablet",
+        usage: "Böbrek taşının idrar kanalından düşmesini hızlandırma ve idrar yolu yanmasını azaltma.",
+        contra: "Ağır karaciğer yetmezliği ve şiddetli tansiyon düşüklüğünde (ayağa kalkınca baş dönmesi yapar) dikkatli kullanılmalıdır.",
+        fieldNote: "Böbrek taşı kanalda sıkıştığında kanalı genişleterek taş düşürme süresini kısaltır."
+    },
+        ,
+    // ==========================================
+    // 16. YARA, YANIK, UÇUK, MANTAR VE HEMOROİD MERHEMLERİ
+    // ==========================================
+    {
+        name: "Centella Asiatica / Dekspantenol (Yara ve Yanık İyileştirici)",
+        brands: "Madecassol, Bepanthol, Bepanthen Plus, Hametan",
+        category: "Merhem & Cilt Bakımı",
+        forms: "Merhem, Krem, Losyon",
+        usage: "Kapanmakta olan açık yaralar, 1. ve 2. derece yanıklar, donma sonrası cilt çatlakları, pişik ve sürtünme yaraları.",
+        contra: "Derin, iltihaplı ve kirli açık yaraların içine doğrudan sürülmez (önce antiseptik ile temizlenmelidir).",
+        fieldNote: "Madecassol ve Bepanthol doku yenilenmesini hızlandırır; Hametan ise hem yanıkta hem hemoroid/tahrişlerde yatıştırıcıdır."
+    },
+    {
+        name: "Asiklovir (Uçuk ve Zona Kremi / Tableti)",
+        brands: "Zovirax, Aklovir, Hernovir, Zovimax",
+        category: "Merhem & Cilt Bakımı",
+        forms: "Krem (Uçuk Merhemi), Tablet, Göz Merhemi",
+        usage: "Dudak ve yüz uçuğu (Herpes), ağrılı su toplayan zona döküntüleri ve uçuk kaynaklı göz iltihabı.",
+        contra: "Böbrek yetmezliği olanlarda yüksek doz tablet formu ayarlanmadan kullanılmaz.",
+        fieldNote: "Dudakta karıncalanma hissedildiği ilk saatlerde krem sürülürse uçuğun patlayıp yayılmasını önler."
+    },
+    {
+        name: "Tribenosid + Lidokain / Ruscogenin (Hemoroid / Basur İlaçları)",
+        brands: "Procto-Glyvenol, Kortos, Hedensa, Ultraproct",
+        category: "Merhem & Cilt Bakımı",
+        forms: "Krem (Pomad), Fitil (Supozituvar)",
+        usage: "Ağrılı, şişmiş ve kanamalı basur (hemoroid) memeleri ve makat çatlağı (anal fissür) ağrısını dindirme.",
+        contra: "Bölgede aktif mantar veya tüberküloz/viral deri enfeksiyonu varsa kortizonlu formları (Kortos/Ultraproct) uzun süre kullanılmaz.",
+        fieldNote: "Saha şartlarında ağır yük taşıma, soğuk zemine oturma ve kabızlık nedeniyle sık görülen hemoroid krizlerini hızla yatıştırır."
+    },
+    {
+        name: "Terbinafin / Ketokonazol / Klotrimazol (Mantar İlaçları)",
+        brands: "Lamisil, Terbisil, Ketoral, Travazol, Canesten",
+        category: "Merhem & Cilt Bakımı",
+        forms: "Krem, Sprey, Tablet, Şampuan",
+        usage: "Ayak mantarı (siper ayağı başlangıcı), kasık mantarı, tırnak mantarı ve nemli ortamlarda gelişen mantar enfeksiyonları.",
+        contra: "Terbinafin tablet aktif karaciğer hastalığında kullanılmaz.",
+        fieldNote: "Islak bot ve çorapla uzun süre yürüyenlerde gelişen ayak mantarı açık yaraya dönüşüp enfeksiyon kapabilir; erken krem müdahalesi şarttır."
+    },
+    {
+        name: "Budesonid / Flutikazon (Akciğer Hava ve Kortizon İnhalerleri)",
+        brands: "Pulmicort, Symbicort, Seretide, Flixotide",
+        category: "Solunum & Astım",
+        forms: "İnhaler (Hava / Kuru Toz), Nebül Kapsülü",
+        usage: "Kronik astım, KOAH, soğuk hava veya duman kaynaklı uzun süreli bronş iltihabını baskılama ve nefes açma.",
+        contra: "Tedavi edilmemiş aktif akciğer tüberkülozu olanlarda dikkatli kullanılmalıdır.",
+        fieldNote: "Kortizon içeren hava ilaçları (Pulmicort/Symbicort) kullanıldıktan sonra ağız mutlaka su ile çalkalanmalıdır, aksi halde ağızda pamukçuk (mantar) yapar."
+    },
+
+    // ==========================================
+    // 17. GÖZ VE KULAK DAMLALARI (GENEL KULLANIM)
+    // ==========================================
+    {
+        name: "Siprofloksasin / Ofloksasin Kulak ve Göz Damlası",
+        brands: "Siprogut, Ciloxan, Exocin",
+        category: "Göz & Kulak",
+        forms: "Damla (Göz / Kulak)",
+        usage: "Kirli su kaçması sonrası gelişen dış kulak yolu iltihabı (yüzücü kulağı), kulak akıntısı ve bakteriyel göz çapaklanması.",
+        contra: "Bilinen kinolon alerjisi dışında güvenlidir; kulak zarı delik olsa bile kullanılabilen nadir güvenli damlalardandır.",
+        fieldNote: "Soğuk kulak damlası baş dönmesi ve kusma yapar; damlatmadan önce şişeyi avuç içinde vücut ısısına getirin."
+    },
+    {
+        name: "Gliserin / Karbamid Peroksit (Kulak Kirini Yumuşatıcı)",
+        brands: "Gliserin Kulak Damlası, Otowax, Remo-Wax",
+        category: "Göz & Kulak",
+        forms: "Damla",
+        usage: "Sertleşmiş kulak kirinin (buşon) tıkanıklık ve işitme kaybı yapması durumunda kiri yumuşatma.",
+        contra: "Kulak zarında delik şüphesi, kulaktan kan/iltihap gelmesi ve şiddetli kulak ağrısında KESİNLİKLE damlatılmaz.",
+        fieldNote: "Sadece ağrısız tıkanıklık hissi varsa kullanılır."
+    },
+    {
+        name: "Suni Gözyaşı (Sodyum Hyaluronat / Karbomer)",
+        brands: "Refresh, Tears Naturale, Eyestil, Viscotears",
+        category: "Göz & Kulak",
+        forms: "Damla (Tek Dozluk / Şişe), Göz Jeli",
+        usage: "Toz, rüzgar, duman ve kuru hava kaynaklı göz yanması, batma ve yabancı cisim hissini temizleme.",
+        contra: "Bilinen bir kontrendikasyonu yoktur; her yaşta güvenle kullanılır.",
+        fieldNote: "Göze toz veya kül kaçtığında ovuşturmadan önce bol suni gözyaşı veya serum fizyolojik ile yıkamak kornea çizilmesini önler."
+    },
+
+    // ==========================================
+    // 18. KADIN HASTALIKLARI İLAÇLARI
+    // ==========================================
+    {
+        name: "Mikonazol / Klotrimazol / Metronidazol Vajinal Ovül",
+        brands: "Gyno-Lomaxin, Neo-Penotran, Zalain, Candimax",
+        category: "Kadın Hastalıkları",
+        forms: "Vajinal Fitil (Ovül), Krem",
+        usage: "Hijyen eksikliği, ıslak kıyafet ve antibiyotik kullanımına bağlı gelişen vajinal mantar ve bakteriyel enfeksiyonlar.",
+        contra: "Gebeliğin ilk 3 ayında metronidazol içeren formlar kullanılmaz; tedavi süresince alkol alınmaz.",
+        fieldNote: "Saha şartlarında temiz su ve iç çamaşırı eksikliğinde kadınlarda en sık görülen enfeksiyonların tedavisinde kullanılır."
+    },
+    {
+        name: "Traneksamik Asit (Şiddetli Kanama Durdurucu)",
+        brands: "Transamin, Herem",
+        category: "Kadın Hastalıkları",
+        forms: "Tablet, Enjektör (Ampul)",
+        usage: "Durdurulamayan aşırı adet kanamaları, doğum sonrası kanamalar ve travma kaynaklı şiddetli iç/dış kanamalar.",
+        contra: "Aktif damar tıkanıklığı (pıhtı/emboli) geçirmiş kişilerde ve beyin içi kanamalarda kullanılmaz.",
+        fieldNote: "Hem kadın hastalıklarına bağlı aşırı kan kaybında hem de ağır travma kanamalarında pıhtıyı koruyarak hayat kurtarır."
+    },
+    {
+        name: "Levonorgestrel / Etinilestradiol (Doğum Kontrol ve Acil Kontrasepsiyon)",
+        brands: "Ella, NorLevo, Yasmin, Microgynon",
+        category: "Kadın Hastalıkları",
+        forms: "Tablet",
+        usage: "İstenmeyen gebeliklerin önlenmesi, acil korunma (ilk 72-120 saat) ve hormonal düzensizlik kanamaları.",
+        contra: "Damar tıkanıklığı geçmişi, ağır karaciğer hastalığı ve mevcut gebelik durumunda kullanılmaz.",
+        fieldNote: "Kriz ve afet ortamlarında korunmasız temas sonrası gebeliği önlemek için kritik öneme sahiptir."
+    },
+
+    // ==========================================
+    // 19. ÇOCUK İLAÇLARI (%100 TEMEL PEDİATRİK LİSTE)
+    // ==========================================
+    {
+        name: "Çocuk Parasetamol Şurup ve Fitil",
+        brands: "Calpol (120 mg / 250 mg), Parol Süspansiyon, Paranox S (Fitil)",
+        category: "Çocuk İlaçları",
+        forms: "Şurup (Süspansiyon), Fitil (Supozituvar)",
+        usage: "Bebek ve çocuklarda ateş düşürme, aşı sonrası ateş, diş çıkarma ağrısı ve kulak/boğaz ağrısı.",
+        contra: "Ağır karaciğer hastalığında kullanılmaz. Çocuk dozları mutlaka çocuğun kilosuna göre (10-15 mg/kg) hesaplanır; 4-6 saatten sık verilmez.",
+        fieldNote: "Kusan veya şurup içemeyen bebeklerde Paranox S fitil makattan uygulanarak ateşi güvenle düşürür."
+    },
+    {
+        name: "Çocuk İbuprofen Şurup",
+        brands: "Dolven, Pedifen, İbufen",
+        category: "Çocuk İlaçları",
+        forms: "Şurup (Süspansiyon)",
+        usage: "Parasetamole dirençli yüksek ateş, orta kulak iltihabı ağrısı ve bademcik iltihabı ağrısı.",
+        contra: "6 aydan küçük bebeklerde, su çiçeği geçiren çocuklarda ve ishal/kusma nedeniyle susuz kalmış çocuklarda kullanılmaz.",
+        fieldNote: "Yüksek ateşte Calpol ile dönüşümlü (4 saat arayla) kullanılabilir; tok karnına verilmelidir."
+    },
+    {
+        name: "Çocuk Antibiyotik Süspansiyonları (Amoksisilin / Sefuroksim / Azitromisin)",
+        brands: "Augmentin BID Süspansiyon, Klamoks BID, Zinnat Süspansiyon, Azitro Şurup",
+        category: "Çocuk İlaçları",
+        forms: "Şurup (Toz Süspansiyon)",
+        usage: "Çocuklarda orta kulak iltihabı, boğaz enfeksiyonu (beta), zatürre, idrar yolu enfeksiyonu ve iltihaplı yaralar.",
+        contra: "Penisilin alerjisi olan çocuklarda Augmentin/Klamoks kullanılmaz (yerine Azitro şurup seçilir).",
+        fieldNote: "Şişe içindeki kuru toz kaynamış soğumuş temiz su ile çizgisine kadar sulandırılıp iyice çalkalanmalıdır."
+    },
+    {
+        name: "Çocuk Alerji ve Öksürük / Nefes Açıcı Şuruplar",
+        brands: "Zaditen, Zyrtec Damla/Şurup, Aerius Şurup, Ventolin Şurup",
+        category: "Çocuk İlaçları",
+        forms: "Şurup, Damla",
+        usage: "Çocuklarda böcek sokması alerjisi, kurdeşen, alerjik nefes darlığı ve hırıltılı bronşit.",
+        contra: "1 yaş altı bebeklerde doktor kontrolü olmadan öksürük kesici şuruplar verilmez.",
+        fieldNote: "Arı veya böcek sokmalarında çocuğun vücudunda yaygın kabarma olursa Zyrtec/Aerius şurup hızla alerjiyi baskılar."
+    },
+    {
+        name: "Çocuk Probiyotik ve İshal Tozları (Çinko + Probiyotik)",
+        brands: "Reflor (Şase), Maflor Damla, Zinco Şurup, Ge-Oral",
+        category: "Çocuk İlaçları",
+        forms: "Toz (Şase), Damla, Şurup",
+        usage: "Çocuklarda kirli su veya antibiyotik kullanımına bağlı gelişen ishalleri durdurma ve bağırsak florasını onarma.",
+        contra: "Bağışıklık sistemi tamamen çökmüş ağır hastalarda canlı maya (Reflor) dikkatli kullanılmalıdır.",
+        fieldNote: "Çocuklarda ishal ölümlerinin bir numaralı sebebi su kaybıdır; probiyotik ve çinko ishali kısaltırken Ge-Oral/tuz-şekerli su hayat kurtarır."
+}   
+
 ];
 
 
