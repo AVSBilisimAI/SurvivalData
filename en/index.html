@@ -36,6 +36,15 @@
         .reader-box { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; line-height: 1.6; }
         #map-wrapper { display: none; background: #ffffff; border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-bottom: 20px; }
         #map-area { height: 420px; width: 100%; border-radius: 8px; margin-top: 10px; background: #e5e7eb; }
+        .reader-box h1, .reader-box h2, .reader-box h3 { color: #111827; margin-top: 20px; margin-bottom: 10px; }
+        .reader-box p { margin-bottom: 12px; }
+        .reader-box ul, .reader-box ol { padding-left: 20px; margin-bottom: 14px; }
+        .reader-box li { margin-bottom: 6px; }
+        .reader-box table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; display: block; overflow-x: auto; }
+        .reader-box th, .reader-box td { border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; }
+        .reader-box th { background: #f3f4f6; font-weight: 700; color: #111827; }
+        .reader-box blockquote { border-left: 4px solid #2d5a27; background: #f0fdf4; margin: 12px 0; padding: 10px 14px; border-radius: 4px; }
+
     </style>
 </head>
 <body>
@@ -154,9 +163,12 @@
 
     <!-- Verileri Üst Dizinden ve İngilizce İlaç Dosyasından Çekiyoruz -->
     <script src="../data/survival_poi.js"></script>
-    <script src="./articles_data_en.js"></script> 
-    <script src="./pharma_data.js"></script> 
-    <script src="./app.js"></script> 
+    <script src="./data/articles_data_en.js"></script> 
+    <script src="./data/pharma_data_en.js"></script> 
+    <script src="./assets/js/app.js"></script> 
+    <script src="../maps/leaflet.js"></script>
+    <script src="../assets/js/pmtiles.js"></script>
+    <script src="../assets/js/protomaps-leaflet.js"></script>
     
     <!-- Service Worker'ı Ana Dizinden Kaydediyoruz -->
     <script>
