@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVS Survival & Field Medicine Encyclopedia</title>
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="../maps/leaflet.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; color: #1f2937; margin: 0; padding: 0; }
+        .top-header { background: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 1000; }
+        .brand { font-weight: 900; font-size: 18px; color: #2d5a27; text-decoration: none; white-space: nowrap; }
+        .search-box { flex: 1 1 260px; display: flex; gap: 6px; min-width: 180px; max-width: 100%; }
+        .search-box input { flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+        .btn { padding: 8px 12px; border: 1px solid #d1d5db; background: #ffffff; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: #374151; }
+        .btn-active { background: #2d5a27; color: #ffffff; border-color: #2d5a27; }
+        .container { max-width: 960px; margin: 20px auto; padding: 0 16px; }
+        .page-title { font-size: 20px; font-weight: 800; color: #111827; margin: 0 0 14px 0; }
+        .alpha-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; background: #ffffff; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .alpha-btn { padding: 5px 9px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .alpha-btn.active { background: #2d5a27; color: #ffffff; border-color: #2d5a27; }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 14px; }
+        .filter-item label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; }
+        .filter-item select { width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff; }
+        .view-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .count-badge { font-size: 12px; font-weight: 700; background: #e5e7eb; padding: 4px 10px; border-radius: 12px; color: #374151; }
+        .article-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s; }
+        .article-card:hover { border-color: #2d5a27; }
+        .card-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+        .card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+        .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .b-risk { background: #fef2f2; color: #991b1b; }
+        .b-cat { background: #f0fdf4; color: #166534; }
+        .b-time { background: #f3f4f6; color: #374151; }
+        .reader-box { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; line-height: 1.6; }
+        #map-wrapper { display: none; background: #ffffff; border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-bottom: 20px; }
+        #map-area { height: 420px; width: 100%; border-radius: 8px; margin-top: 10px; background: #e5e7eb; }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <a href="./index.html" class="brand">AVS SURVIVAL</a>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search: fire, tick, water, amoxicillin...">
+            <button class="btn btn-active" id="searchBtn">Search</button>
+        </div>
+        <div class="nav-tabs">
+            <button class="btn" id="modeAiBtn">Advisor (AI)</button>
+            <button class="btn btn-active" id="modeEncyclopediaBtn">Encyclopedia</button>
+            <button class="btn" id="modePharmaBtn">💊 Pharmacology</button>
+            <button class="btn" id="toggleMapBtn">Map</button>
+            <button class="btn" id="forceUpdateBtn" title="Download latest updates">🔄 Update</button>
+            <a href="../index.html" class="btn" style="background:#f8fafc; border-color:#94a3b8; font-weight:800; text-decoration:none; color:#111827;">🌐 TR</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Offline Map Panel -->
+        <div id="map-wrapper">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <a href="https://github.com" target="_blank" class="btn" style="text-decoration:none; background:#eff6ff; border-color:#2563eb; color:#1d4ed8;">
+                    ⬇️ 1. Download Offline Map (573 MB)
+                </a>
+                <label for="pmtilesFileInput" class="btn btn-active" style="cursor:pointer; margin:0;">
+                    📂 2. Select Map File (.pmtiles)
+                </label>
+                <input type="file" id="pmtilesFileInput" accept=".pmtiles" style="display:none;">
+                <span id="mapStatusText" style="font-size:12px; font-weight:600; color:#4b5563;">Waiting for map...</span>
+            </div>
+            <div id="map-area"></div>
+            <div id="coord-panel" style="display:none; margin-top:10px; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <strong id="coordText" style="font-size:13px; color:#111827;"></strong>
+                    <button class="btn" id="copyCoordBtn" style="font-size:12px;">📋 Copy Coordinates</button>
+                </div>
+                <div id="nearby-resources" style="margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;"></div>
+            </div>
+        </div>
+
+        <!-- Encyclopedia Header -->
+        <div id="directory-header">
+            <h1 class="page-title">Survival & Civilization Encyclopedia</h1>
+            <div class="alpha-bar" id="alpha-bar"></div>
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Category</label>
+                    <select id="categoryFilter"><option value="ALL">All Categories</option></select>
+                </div>
+                <div class="filter-item">
+                    <label>Risk Level</label>
+                    <select id="riskFilter">
+                        <option value="ALL">All Levels</option>
+                        <option value="High">High Risk</option>
+                        <option value="Medium">Medium Risk</option>
+                        <option value="Low">Low Risk</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Phase / Stage</label>
+                    <select id="phaseFilter">
+                        <option value="ALL">All Phases</option>
+                        <option value="Phase 1">Phase 1: Survival</option>
+                        <option value="Phase 2">Phase 2: Sustaining Life</option>
+                        <option value="Phase 3">Phase 3: Rebuilding Civilization</option>
+                    </select>
+                </div>
+            </div>
+            <div class="view-controls">
+                <div style="font-size:13px; font-weight:700; color:#2d5a27;" id="activeFilterText">All Guides</div>
+                <div class="count-badge" id="resultCountText">0 cards</div>
+            </div>
+        </div>
+
+        <!-- Pharmacology Header -->
+        <div id="pharma-header" style="display:none;">
+            <h1 class="page-title">💊 Field Pharmacology Encyclopedia</h1>
+            <div style="background:#fef2f2; border-left:4px solid #dc2626; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:12px; color:#991b1b;">
+                ⚠️ <b>Field Warning:</b> Always check packaging integrity, color changes, and expiration dates on salvaged medications. Expired tetracyclines and discolored injectable vials can cause fatal organ failure.
+            </div>
+            <div class="alpha-bar" id="pharma-alpha-bar"></div>
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Search Drug / Active Ingredient</label>
+                    <input type="text" id="pharmaSearchInput" placeholder="Ex: Amoxicillin, Aspirin, Morphine..." style="width:100%; padding:7px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="filter-item">
+                    <label>Medical Category</label>
+                    <select id="pharmaCategoryFilter"><option value="ALL">All Categories</option></select>
+                </div>
+                <div class="filter-item">
+                    <label>Dosage Form</label>
+                    <select id="pharmaFormFilter">
+                        <option value="ALL">All Forms</option>
+                        <option value="Tablet">Tablet / Pill / Capsule</option>
+                        <option value="Syrup">Syrup / Suspension</option>
+                        <option value="Injectable">Ampoule / Vial (Injectable)</option>
+                        <option value="Ointment">Ointment / Cream / Gel</option>
+                        <option value="Drops">Drops / Spray / Inhaler</option>
+                        <option value="Solution">Solution / IV Fluid</option>
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="view-controls">
+                <div style="font-size:13px; font-weight:700; color:#2d5a27;" id="pharmaActiveFilterText">All Active Ingredients</div>
+                <div class="count-badge" id="pharmaCountText">0 drugs</div>
+            </div>
+        </div>
+
+        <div id="content-area"></div>
+    </main>
+
+    <!-- Verileri Üst Dizinden ve İngilizce İlaç Dosyasından Çekiyoruz -->
+    <script src="../data/survival_poi.js"></script>
+    <script src="./articles_data_en.js"></script> 
+    <script src="./pharma_data.js"></script> 
+    <script src="./app.js"></script> 
+    
+    <!-- Service Worker'ı Ana Dizinden Kaydediyoruz -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('../sw.js').catch(function() {});
+        });
+      }
+    </script>
+</body>
+</html>
